@@ -1,0 +1,100 @@
+// swift-tools-version: 6.2
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
+import PackageDescription
+
+let package = Package(
+    name: "AgenticAdapters",
+    platforms: [
+        .macOS(.v13)
+    ],
+    products: [
+        .library(
+            name: "AgenticApple", // FoundationModels framework
+            targets: ["AgenticApple"]
+        ),
+        .library(
+            name: "AgenticAWS", // Bedrock, perhaps later also transcribe etc?
+            targets: ["AgenticAWS"]
+        ),
+        .executable(
+            name: "adapterflowtest",
+            targets: ["AgenticAdaptersFlowTesting"]
+        ),
+
+        // .library(
+        //     name: "AgenticOpenAI",
+        //     targets: ["AgenticOpenAI"]
+        // ),
+
+        // .library(
+        //     name: "AgenticAnthropic",
+        //     targets: ["AgenticAnthropic"]
+        // ),
+
+        // .library(
+        //     name: "AgenticOllama",
+        //     targets: ["AgenticOllama"]
+        // ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AWSConnector.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
+
+        // .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "603.0.1"),
+
+        // .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Position.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Parsers.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Accounting.git", branch: "master"),
+
+        // .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Writers.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Readers.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/FileTypes.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Selection.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Concatenation.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Interfaces.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Tokens.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Matching.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Ranking.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Fuzzy.git", branch: "master"),
+        // .package(url: "https://github.com/leviouwendijk/Executable.git", branch: "master"),
+    ],
+
+    targets: [
+        .target(
+            name: "AgenticApple",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+            ],
+        ),
+        .target(
+            name: "AgenticAWS",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AWSConnector", package: "AWSConnector"),
+            ],
+        ),
+
+        .executableTarget(
+            name: "AgenticAdaptersFlowTesting",
+            dependencies: [
+                "AgenticApple",
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "TestFlows", package: "TestFlows"),
+            ]
+        ),
+    ]
+
+    // targets: [
+    //     .target(
+    //         name: "AgenticAdapters"
+    //     ),
+    //     .testTarget(
+    //         name: "AgenticAdaptersTests",
+    //         dependencies: ["AgenticAdapters"]
+    //     ),
+    // ]
+)
