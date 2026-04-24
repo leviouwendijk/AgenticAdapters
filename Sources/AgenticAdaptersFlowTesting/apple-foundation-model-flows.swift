@@ -678,6 +678,195 @@ extension AgenticAdaptersFlowTesting {
         ]
     }
 
+    static func runAppleLiveScratchpadReadWriteLoop() async throws -> [TestFlowDiagnostic] {
+        let enabled = ProcessInfo.processInfo.environment["AGENTIC_APPLE_LIVE_TEST"] == "1"
+
+        guard enabled else {
+            return [
+                .message("skipped: set AGENTIC_APPLE_LIVE_TEST=1 to run the live FoundationModels scratchpad loop")
+            ]
+        }
+
+        let store = AdapterFlowScratchpadStore()
+        let readTool = AdapterFlowScratchpadReadTool(
+            store: store
+        )
+        let putTool = AdapterFlowScratchpadTool(
+            store: store
+        )
+        let initialScratchpadValues = await store.all()
+
+        try Expect.isEmpty(
+            initialScratchpadValues,
+            "fresh scratchpad"
+        )
+
+        let adapter = AdapterFlowFoundationScratchpadLoopAdapter()
+        let request = AgentRequest(
+            model: "foundationmodels-reactive-scratchpad",
+            messages: [
+                .init(
+                    role: .user,
+                    text: "Read the scratchpad, ask FoundationModels for one spontaneous short note, write it, then answer."
+                )
+            ]
+        )
+        let runner = AgentRunner(
+            adapter: adapter,
+            configuration: .init(
+                maximumIterations: 4,
+                responseDelivery: .stream
+            ),
+            toolRegistry: .init(
+                tools: [
+                    readTool,
+                    putTool
+                ]
+            )
+        )
+
+        let result = try await runner.run(
+            request,
+            sessionID: "apple-live-scratchpad-read-write-loop"
+        )
+        let generatedNote = try Expect.notNil(
+            await adapter.generatedNote(),
+            "generated note"
+        )
+        let scratchpadValues = await store.all()
+        let recordedRequests = await adapter.recordedRequests()
+
+        try Expect.equal(
+            result.response?.message.content.text,
+            "live scratchpad loop ok",
+            "live scratchpad loop final response"
+        )
+        try Expect.equal(
+            recordedRequests.count,
+            3,
+            "model call count"
+        )
+        try Expect.equal(
+            scratchpadValues,
+            [
+                generatedNote
+            ],
+            "scratchpad values"
+        )
+        try Expect.notEmpty(
+            generatedNote,
+            "FoundationModels generated note"
+        )
+
+        let secondRequest = try Expect.notNil(
+            recordedRequests.count > 1 ? recordedRequests[1] : nil,
+            "second model request"
+        )
+        let thirdRequest = try Expect.notNil(
+            recordedRequests.count > 2 ? recordedRequests[2] : nil,
+            "third model request"
+        )
+        let readResults = toolResults(
+            from: secondRequest,
+            named: AdapterFlowScratchpadReadTool.identifier.rawValue
+        )
+        let putResults = toolResults(
+            from: thirdRequest,
+            named: AdapterFlowScratchpadTool.identifier.rawValue
+        )
+
+        try Expect.equal(
+            readResults.count,
+            1,
+            "read tool result count"
+        )
+        try Expect.equal(
+            putResults.count,
+            1,
+            "put tool result count"
+        )
+
+        let putOutput = try JSONToolBridge.decode(
+            AdapterFlowScratchpadPutOutput.self,
+            from: putResults[0].output
+        )
+
+        try Expect.equal(
+            putOutput.text,
+            generatedNote,
+            "put tool result text"
+        )
+        try Expect.equal(
+            putOutput.count,
+            1,
+            "put tool result count"
+        )
+        try Expect.containsOrdered(
+            result.events.map(\.kind),
+            [
+                .model_stream_started,
+                .model_stream_tool_call,
+                .model_stream_completed,
+                .assistant_response,
+                .tool_preflight,
+                .tool_approved,
+                .tool_result,
+                .model_stream_started,
+                .model_stream_tool_call,
+                .model_stream_completed,
+                .assistant_response,
+                .tool_preflight,
+                .tool_approved,
+                .tool_result,
+                .model_stream_started,
+                .model_stream_completed,
+                .assistant_response
+            ],
+            "live scratchpad read/write loop events"
+        )
+
+        return [
+            AdapterFlowDiagnostics.input(
+                request
+            ),
+            .field(
+                "model_calls",
+                String(
+                    recordedRequests.count
+                )
+            ),
+            .section(
+                "initial_scratchpad",
+                initialScratchpadValues
+            ),
+            .field(
+                "foundationmodels_generated_note",
+                generatedNote
+            ),
+            .section(
+                "final_scratchpad",
+                scratchpadValues
+            ),
+            .section(
+                "tool_results_to_model",
+                [
+                    "read: \(readResults[0].output)",
+                    "put.text: \(putOutput.text)",
+                    "put.count: \(putOutput.count)"
+                ]
+            ),
+            AdapterFlowDiagnostics.events(
+                result.events
+            ),
+            AdapterFlowDiagnostics.output(
+                try Expect.notNil(
+                    result.response,
+                    "final response"
+                )
+            )
+        ]
+    }
+
     static func runAppleLiveQuery() async throws -> [TestFlowDiagnostic] {
         let enabled = ProcessInfo.processInfo.environment["AGENTIC_APPLE_LIVE_TEST"] == "1"
 
