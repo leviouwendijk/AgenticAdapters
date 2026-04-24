@@ -33,6 +33,20 @@ enum AgenticAdaptersFlowSuite: TestFlowRegistry {
         },
 
         TestFlow(
+            ID.adapter_scratchpad_tool,
+            tags: ["adapter", "tool-use", "scratchpad", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runAdapterScratchpadTool()
+        },
+
+        TestFlow(
+            ID.adapter_scratchpad_read_write_loop,
+            tags: ["adapter", "tool-use", "scratchpad", "loop", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runAdapterScratchpadReadWriteLoop()
+        },
+
+        TestFlow(
             ID.apple_live_query,
             tags: ["apple", "foundation-models", "live"]
         ) {
@@ -54,6 +68,8 @@ extension AgenticAdaptersFlowSuite {
         static let apple_tools_unsupported = "apple-tools-unsupported"
         static let adapter_stream_supported = "adapter-stream-supported"
         static let adapter_tool_loop = "adapter-tool-loop"
+        static let adapter_scratchpad_tool = "adapter-scratchpad-tool"
+        static let adapter_scratchpad_read_write_loop = "adapter-scratchpad-read-write-loop"
         static let apple_live_query = "apple-live-query"
         static let apple_live_stream_query = "apple-live-stream-query"
     }

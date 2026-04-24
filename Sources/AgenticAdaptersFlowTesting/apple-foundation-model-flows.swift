@@ -329,6 +329,355 @@ extension AgenticAdaptersFlowTesting {
         ]
     }
 
+    static func runAdapterScratchpadTool() async throws -> [TestFlowDiagnostic] {
+        let store = AdapterFlowScratchpadStore()
+        let tool = AdapterFlowScratchpadTool(
+            store: store
+        )
+        let note = "safe in-memory note"
+        let toolCall = AgentToolCall(
+            id: "adapter-flow-scratchpad-call-1",
+            name: AdapterFlowScratchpadTool.identifier.rawValue,
+            input: try JSONToolBridge.encode(
+                AdapterFlowScratchpadPutInput(
+                    text: note
+                )
+            )
+        )
+        let request = AgentRequest(
+            model: "scripted",
+            messages: [
+                .init(
+                    role: .user,
+                    text: "Store a scratchpad note, then answer with 'scratchpad ok'."
+                )
+            ]
+        )
+        let firstResponse = AgentResponse(
+            message: .init(
+                role: .assistant,
+                content: .init(
+                    blocks: [
+                        .tool_call(toolCall)
+                    ]
+                )
+            ),
+            stopReason: .tool_use,
+            metadata: [
+                "source": "adapterflowtest"
+            ]
+        )
+        let finalResponse = AgentResponse(
+            message: .init(
+                role: .assistant,
+                text: "scratchpad ok"
+            ),
+            stopReason: .end_turn,
+            metadata: [
+                "source": "adapterflowtest"
+            ]
+        )
+        let adapter = AdapterFlowScriptedModelAdapter(
+            streamBatches: [
+                [
+                    .toolcall(toolCall),
+                    .completed(firstResponse),
+                ],
+                [
+                    .completed(finalResponse)
+                ]
+            ]
+        )
+        let runner = AgentRunner(
+            adapter: adapter,
+            configuration: .init(
+                maximumIterations: 2,
+                responseDelivery: .stream
+            ),
+            toolRegistry: .init(
+                tools: [
+                    tool
+                ]
+            )
+        )
+
+        let result = try await runner.run(
+            request,
+            sessionID: "adapter-flow-scratchpad-tool"
+        )
+        let scratchpadValues = await store.all()
+        let recordedRequests = await adapter.recordedRequests()
+        let secondRequest = try Expect.notNil(
+            recordedRequests.count > 1 ? recordedRequests[1] : nil,
+            "second model request"
+        )
+        let toolResults = secondRequest.messages
+            .flatMap(\.content.blocks)
+            .compactMap { block -> AgentToolResult? in
+                guard case .tool_result(let result) = block else {
+                    return nil
+                }
+
+                return result
+            }
+
+        try Expect.equal(
+            result.response?.message.content.text,
+            "scratchpad ok",
+            "scratchpad final response"
+        )
+        try Expect.equal(
+            scratchpadValues,
+            [note],
+            "scratchpad values"
+        )
+        try Expect.equal(
+            toolResults.count,
+            1,
+            "tool result count"
+        )
+
+        let toolResult = try Expect.notNil(
+            toolResults.first,
+            "tool result"
+        )
+
+        try Expect.equal(
+            toolResult.name,
+            AdapterFlowScratchpadTool.identifier.rawValue,
+            "tool result name"
+        )
+        try Expect.contains(
+            String(
+                describing: toolResult.output
+            ),
+            note,
+            "tool result output"
+        )
+        try Expect.containsOrdered(
+            result.events.map(\.kind),
+            [
+                .model_stream_started,
+                .model_stream_tool_call,
+                .model_stream_completed,
+                .assistant_response,
+                .tool_preflight,
+                .tool_approved,
+                .tool_result,
+                .model_stream_started,
+                .model_stream_completed,
+                .assistant_response
+            ],
+            "scratchpad tool events"
+        )
+
+        return [
+            AdapterFlowDiagnostics.input(
+                request
+            ),
+            .field(
+                "model_calls",
+                String(
+                    recordedRequests.count
+                )
+            ),
+            .section(
+                "scratchpad",
+                scratchpadValues
+            ),
+            .section(
+                "tool_result_to_model",
+                [
+                    "name: \(toolResult.name ?? "<nil>")",
+                    "output: \(toolResult.output)"
+                ]
+            ),
+            AdapterFlowDiagnostics.events(
+                result.events
+            ),
+            AdapterFlowDiagnostics.output(
+                finalResponse
+            )
+        ]
+    }
+
+    static func runAdapterScratchpadReadWriteLoop() async throws -> [TestFlowDiagnostic] {
+        let store = AdapterFlowScratchpadStore()
+        let readTool = AdapterFlowScratchpadReadTool(
+            store: store
+        )
+        let putTool = AdapterFlowScratchpadTool(
+            store: store
+        )
+        let initialScratchpadValues = await store.all()
+
+        try Expect.isEmpty(
+            initialScratchpadValues,
+            "fresh scratchpad"
+        )
+
+        let adapter = AdapterFlowScratchpadLoopModelAdapter()
+        let request = AgentRequest(
+            model: "reactive-scratchpad",
+            messages: [
+                .init(
+                    role: .user,
+                    text: "Read the scratchpad, add one short note of your own, then answer."
+                )
+            ]
+        )
+        let runner = AgentRunner(
+            adapter: adapter,
+            configuration: .init(
+                maximumIterations: 4,
+                responseDelivery: .stream
+            ),
+            toolRegistry: .init(
+                tools: [
+                    readTool,
+                    putTool
+                ]
+            )
+        )
+
+        let result = try await runner.run(
+            request,
+            sessionID: "adapter-flow-scratchpad-read-write-loop"
+        )
+        let generatedNote = try Expect.notNil(
+            await adapter.generatedNote(),
+            "generated note"
+        )
+        let scratchpadValues = await store.all()
+        let recordedRequests = await adapter.recordedRequests()
+
+        try Expect.equal(
+            result.response?.message.content.text,
+            "scratchpad loop ok",
+            "scratchpad loop final response"
+        )
+        try Expect.equal(
+            recordedRequests.count,
+            3,
+            "model call count"
+        )
+        try Expect.equal(
+            scratchpadValues,
+            [
+                generatedNote
+            ],
+            "scratchpad loop values"
+        )
+        try Expect.notEqual(
+            generatedNote,
+            "safe in-memory note",
+            "generated note is not the deterministic fixture note"
+        )
+        try Expect.contains(
+            generatedNote,
+            "model note after reading",
+            "generated note source"
+        )
+
+        let secondRequest = try Expect.notNil(
+            recordedRequests.count > 1 ? recordedRequests[1] : nil,
+            "second model request"
+        )
+        let thirdRequest = try Expect.notNil(
+            recordedRequests.count > 2 ? recordedRequests[2] : nil,
+            "third model request"
+        )
+        let readResults = toolResults(
+            from: secondRequest,
+            named: AdapterFlowScratchpadReadTool.identifier.rawValue
+        )
+        let putResults = toolResults(
+            from: thirdRequest,
+            named: AdapterFlowScratchpadTool.identifier.rawValue
+        )
+
+        try Expect.equal(
+            readResults.count,
+            1,
+            "read tool result count"
+        )
+        try Expect.equal(
+            putResults.count,
+            1,
+            "put tool result count"
+        )
+        try Expect.contains(
+            String(
+                describing: putResults[0].output
+            ),
+            generatedNote,
+            "put tool result output"
+        )
+        try Expect.containsOrdered(
+            result.events.map(\.kind),
+            [
+                .model_stream_started,
+                .model_stream_tool_call,
+                .model_stream_completed,
+                .assistant_response,
+                .tool_preflight,
+                .tool_approved,
+                .tool_result,
+                .model_stream_started,
+                .model_stream_tool_call,
+                .model_stream_completed,
+                .assistant_response,
+                .tool_preflight,
+                .tool_approved,
+                .tool_result,
+                .model_stream_started,
+                .model_stream_completed,
+                .assistant_response
+            ],
+            "scratchpad read/write loop events"
+        )
+
+        return [
+            AdapterFlowDiagnostics.input(
+                request
+            ),
+            .field(
+                "model_calls",
+                String(
+                    recordedRequests.count
+                )
+            ),
+            .section(
+                "initial_scratchpad",
+                initialScratchpadValues
+            ),
+            .field(
+                "generated_note",
+                generatedNote
+            ),
+            .section(
+                "final_scratchpad",
+                scratchpadValues
+            ),
+            .section(
+                "tool_results_to_model",
+                [
+                    "read: \(readResults[0].output)",
+                    "put: \(putResults[0].output)"
+                ]
+            ),
+            AdapterFlowDiagnostics.events(
+                result.events
+            ),
+            AdapterFlowDiagnostics.output(
+                try Expect.notNil(
+                    result.response,
+                    "final response"
+                )
+            )
+        ]
+    }
+
     static func runAppleLiveQuery() async throws -> [TestFlowDiagnostic] {
         let enabled = ProcessInfo.processInfo.environment["AGENTIC_APPLE_LIVE_TEST"] == "1"
 
@@ -441,6 +790,24 @@ extension AgenticAdaptersFlowTesting {
             )
         ]
     }
+}
+
+private func toolResults(
+    from request: AgentRequest,
+    named name: String
+) -> [AgentToolResult] {
+    request.messages
+        .flatMap(\.content.blocks)
+        .compactMap { block -> AgentToolResult? in
+            guard case .tool_result(let result) = block else {
+                return nil
+            }
+
+            return result
+        }
+        .filter { result in
+            result.name == name
+        }
 }
 
 private func streamText(
