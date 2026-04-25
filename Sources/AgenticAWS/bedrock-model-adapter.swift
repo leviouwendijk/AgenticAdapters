@@ -41,6 +41,17 @@ public struct BedrockModelAdapter: AgentModelAdapter {
     public var response: AgentModelResponseProviding {
         provider
     }
+
+    static func resolve(
+        defaultModelIdentifier: String,
+        metadata: [String: String] = [:]
+    ) throws -> Self {
+        try .init(
+            runtime: BedrockRuntimeClient.resolve(),
+            defaultModelIdentifier: defaultModelIdentifier,
+            metadata: metadata
+        )
+    }
 }
 
 public struct BedrockModelResponseProvider: AgentModelResponseProviding {
@@ -144,3 +155,4 @@ private enum BedrockMetadata {
         return metadata
     }
 }
+
