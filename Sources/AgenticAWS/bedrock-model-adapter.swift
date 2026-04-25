@@ -42,7 +42,7 @@ public struct BedrockModelAdapter: AgentModelAdapter {
         provider
     }
 
-    static func resolve(
+    public static func resolve(
         defaultModelIdentifier: String,
         metadata: [String: String] = [:]
     ) throws -> Self {
