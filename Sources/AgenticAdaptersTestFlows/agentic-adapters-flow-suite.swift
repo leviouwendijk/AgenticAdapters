@@ -19,6 +19,27 @@ enum AgenticAdaptersFlowSuite: TestFlowRegistry {
         },
 
         TestFlow(
+            ID.bedrock_buffered_stream_completion,
+            tags: ["aws", "bedrock", "offline", "stream"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockBufferedStreamCompletion()
+        },
+
+        TestFlow(
+            ID.bedrock_tool_use_stream,
+            tags: ["aws", "bedrock", "offline", "tool-use", "stream"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockToolUseStream()
+        },
+
+        TestFlow(
+            ID.bedrock_tool_result_mapping,
+            tags: ["aws", "bedrock", "offline", "tool-use"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockToolResultMapping()
+        },
+
+        TestFlow(
             ID.adapter_stream_supported,
             tags: ["adapter", "stream", "offline"]
         ) {
@@ -73,6 +94,9 @@ extension AgenticAdaptersFlowSuite {
     enum ID {
         static let apple_prompt_rendering = "apple-prompt-rendering"
         static let apple_tools_unsupported = "apple-tools-unsupported"
+        static let bedrock_buffered_stream_completion = "bedrock-buffered-stream-completion"
+        static let bedrock_tool_use_stream = "bedrock-tool-use-stream"
+        static let bedrock_tool_result_mapping = "bedrock-tool-result-mapping"
         static let adapter_stream_supported = "adapter-stream-supported"
         static let adapter_tool_loop = "adapter-tool-loop"
         static let adapter_scratchpad_tool = "adapter-scratchpad-tool"

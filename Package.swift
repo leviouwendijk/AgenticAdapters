@@ -18,8 +18,8 @@ let package = Package(
             targets: ["AgenticAWS"]
         ),
         .executable(
-            name: "adapterflowtest",
-            targets: ["AgenticAdaptersFlowTesting"]
+            name: "adtest",
+            targets: ["AgenticAdaptersTestFlows"]
         ),
 
         // .library(
@@ -79,11 +79,13 @@ let package = Package(
         ),
 
         .executableTarget(
-            name: "AgenticAdaptersFlowTesting",
+            name: "AgenticAdaptersTestFlows",
             dependencies: [
                 "AgenticApple",
+                "AgenticAWS",
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "TestFlows", package: "TestFlows"),
+                .product(name: "AWSConnector", package: "AWSConnector"),
             ]
         ),
     ]

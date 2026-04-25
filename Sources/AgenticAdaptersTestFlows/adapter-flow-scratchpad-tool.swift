@@ -19,7 +19,7 @@ actor AdapterFlowScratchpadStore {
     }
 }
 
-struct AdapterFlowScratchpadReadTool: AgentTool {
+struct AdapterFlowScratchpadReadTool: AgentTool, StaticAgentToolMetadata {
     static let identifier: AgentToolIdentifier = .init(
         "adapter_scratchpad_read"
     )
@@ -46,7 +46,7 @@ struct AdapterFlowScratchpadReadTool: AgentTool {
     }
 }
 
-struct AdapterFlowScratchpadTool: AgentTool {
+struct AdapterFlowScratchpadTool: AgentTool, StaticAgentToolMetadata {
     static let identifier: AgentToolIdentifier = .init(
         "adapter_scratchpad_put"
     )

@@ -1,0 +1,157 @@
+{
+  "failed" : 0,
+  "failed_names" : [
+
+  ],
+  "generated_at" : "2026-04-25T23:13:10Z",
+  "passed" : 12,
+  "results" : [
+    {
+      "display_name" : "apple-prompt-rendering",
+      "duration_seconds" : 0.00312197208404541,
+      "name" : "apple-prompt-rendering",
+      "status" : "passed",
+      "tags" : [
+        "apple",
+        "foundation-models",
+        "offline"
+      ]
+    },
+    {
+      "display_name" : "apple-tools-unsupported",
+      "duration_seconds" : 0.0025539398193359375,
+      "name" : "apple-tools-unsupported",
+      "status" : "passed",
+      "tags" : [
+        "apple",
+        "foundation-models",
+        "offline"
+      ]
+    },
+    {
+      "display_name" : "bedrock-buffered-stream-completion",
+      "duration_seconds" : 0.003280043601989746,
+      "name" : "bedrock-buffered-stream-completion",
+      "status" : "passed",
+      "tags" : [
+        "aws",
+        "bedrock",
+        "offline",
+        "stream"
+      ]
+    },
+    {
+      "display_name" : "bedrock-tool-use-stream",
+      "duration_seconds" : 0.0009000301361083984,
+      "name" : "bedrock-tool-use-stream",
+      "status" : "passed",
+      "tags" : [
+        "aws",
+        "bedrock",
+        "offline",
+        "stream",
+        "tool-use"
+      ]
+    },
+    {
+      "display_name" : "bedrock-tool-result-mapping",
+      "duration_seconds" : 0.00028896331787109375,
+      "name" : "bedrock-tool-result-mapping",
+      "status" : "passed",
+      "tags" : [
+        "aws",
+        "bedrock",
+        "offline",
+        "tool-use"
+      ]
+    },
+    {
+      "display_name" : "adapter-stream-supported",
+      "duration_seconds" : 0.00020301342010498047,
+      "name" : "adapter-stream-supported",
+      "status" : "passed",
+      "tags" : [
+        "adapter",
+        "offline",
+        "stream"
+      ]
+    },
+    {
+      "display_name" : "adapter-tool-loop",
+      "duration_seconds" : 0.005980014801025391,
+      "name" : "adapter-tool-loop",
+      "status" : "passed",
+      "tags" : [
+        "adapter",
+        "offline",
+        "stream",
+        "tool-use"
+      ]
+    },
+    {
+      "display_name" : "adapter-scratchpad-tool",
+      "duration_seconds" : 0.0005819797515869141,
+      "name" : "adapter-scratchpad-tool",
+      "status" : "passed",
+      "tags" : [
+        "adapter",
+        "offline",
+        "scratchpad",
+        "tool-use"
+      ]
+    },
+    {
+      "display_name" : "adapter-scratchpad-read-write-loop",
+      "duration_seconds" : 0.0004909038543701172,
+      "name" : "adapter-scratchpad-read-write-loop",
+      "status" : "passed",
+      "tags" : [
+        "adapter",
+        "loop",
+        "offline",
+        "scratchpad",
+        "tool-use"
+      ]
+    },
+    {
+      "display_name" : "apple-live-query",
+      "duration_seconds" : 1.3639439344406128,
+      "name" : "apple-live-query",
+      "status" : "passed",
+      "tags" : [
+        "apple",
+        "foundation-models",
+        "live"
+      ]
+    },
+    {
+      "display_name" : "apple-live-stream-query",
+      "duration_seconds" : 0.4178389310836792,
+      "name" : "apple-live-stream-query",
+      "status" : "passed",
+      "tags" : [
+        "apple",
+        "foundation-models",
+        "live",
+        "stream"
+      ]
+    },
+    {
+      "display_name" : "apple-live-scratchpad-read-write-loop",
+      "duration_seconds" : 0.41854798793792725,
+      "name" : "apple-live-scratchpad-read-write-loop",
+      "status" : "passed",
+      "tags" : [
+        "apple",
+        "foundation-models",
+        "live",
+        "loop",
+        "scratchpad",
+        "tool-use"
+      ]
+    }
+  ],
+  "skipped" : 0,
+  "title" : "AgenticAdapters flow tests",
+  "total" : 12
+}

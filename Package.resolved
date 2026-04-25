@@ -1,5 +1,5 @@
 {
-  "originHash" : "f392a3f5a8cbf0ab3075694db413b2c1e2d2c919107aaa89f58dcab885f1cd2c",
+  "originHash" : "190bed694702ede0861886af3fe9462a03a7443b4ee0e9066fd9fa2bf41e157c",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e3ba10b30d5b6522d61856d251e3616af37c7846"
+        "revision" : "a597783ab6fed3cc5ac4d68cb7ea29801e686d56"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/leviouwendijk/AWSConnector.git",
       "state" : {
         "branch" : "master",
-        "revision" : "8c98b9cc2d42eb79f5250f86b506db46a1afe9d1"
+        "revision" : "04042734b2096a18bee34e10ff373b2e8485033d"
       }
     },
     {
@@ -52,7 +52,7 @@
       "location" : "https://github.com/leviouwendijk/Difference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "395508c460782f6ec334c842eaef3856a628874b"
+        "revision" : "999beddfaa99a991807a4e07e8c0482512c94b69"
       }
     },
     {
@@ -160,7 +160,7 @@
       "location" : "https://github.com/leviouwendijk/Primitives.git",
       "state" : {
         "branch" : "master",
-        "revision" : "67969389bcee783f45c7fc1df75a63cacc7eaf17"
+        "revision" : "8dbb4c35c168f75bac7d029286c1c587c728f3ff"
       }
     },
     {
@@ -214,7 +214,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "d4a3338604127da3c6e8c42ff62d8468cbfe9f4a"
+        "revision" : "d1d40273bdf557d99e5c4a767789ee662475cfd7"
       }
     },
     {
@@ -223,7 +223,7 @@
       "location" : "https://github.com/leviouwendijk/TestFlows.git",
       "state" : {
         "branch" : "master",
-        "revision" : "07ccde049e0233af49c291e5b377b3a844d9e3dc"
+        "revision" : "c8bc5c4b69bda6775fa126aa7af340d5198a1790"
       }
     },
     {
@@ -259,7 +259,7 @@
       "location" : "https://github.com/leviouwendijk/Writers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "34bb38bf945468880f9375035f7487ec591a43c0"
+        "revision" : "e5f829b15c8d55004595a4c60240ae314533fc0e"
       }
     }
   ],
