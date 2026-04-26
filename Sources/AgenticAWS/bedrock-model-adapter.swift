@@ -1,5 +1,8 @@
 import Agentic
 import AWSConnector
+import Foundation
+
+private let debug = true
 
 public struct BedrockModelAdapter: AgentModelAdapter {
     private let provider: BedrockModelResponseProvider
@@ -96,6 +99,30 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
                     let bedrock = try BedrockRequestMapper.map(
                         request
                     )
+
+                    // DEBUG
+                    if debug {
+                        let encoder = JSONEncoder()
+                        encoder.outputFormatting = [
+                            .prettyPrinted,
+                            .sortedKeys
+                        ]
+
+                        let data = try encoder.encode(
+                            bedrock
+                        )
+
+                        if let text = String(
+                            data: data,
+                            encoding: .utf8
+                        ) {
+                            fputs(
+                                "\n--- Bedrock Converse Request ---\n\(text)\n--- End Bedrock Converse Request ---\n",
+                                stderr
+                            )
+                        }
+                    }
+
                     let metadata = BedrockMetadata.base(
                         configuration.metadata,
                         model: model

@@ -45,13 +45,29 @@ enum BedrockToolMapper {
         .init(
             toolUseId: result.toolCallID,
             content: [
-                .json(
-                    result.output
+                .text(
+                    String(
+                        describing: result.output
+                    )
                 )
             ],
             status: nil
         )
     }
+
+    // static func map(
+    //     _ result: AgentToolResult
+    // ) -> Bedrock.Converse.ToolResult {
+    //     .init(
+    //         toolUseId: result.toolCallID,
+    //         content: [
+    //             .json(
+    //                 result.output
+    //             )
+    //         ],
+    //         status: nil
+    //     )
+    // }
 
     private static let defaultSchema: JSONValue = .object([
         "type": .string("object"),
