@@ -1,6 +1,7 @@
 import Agentic
 import AWSConnector
 import Primitives
+import Foundation
 
 enum BedrockToolMapper {
     static func map(
@@ -46,12 +47,38 @@ enum BedrockToolMapper {
             toolUseId: result.toolCallID,
             content: [
                 .text(
-                    String(
-                        describing: result.output
+                    toolResultText(
+                        result.output
                     )
                 )
             ],
             status: nil
+        )
+    }
+
+    static func toolResultText(
+        _ output: JSONValue
+    ) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [
+            .sortedKeys
+        ]
+
+        do {
+            let data = try encoder.encode(
+                output
+            )
+
+            if let text = String(
+                data: data,
+                encoding: .utf8
+            ) {
+                return text
+            }
+        } catch {}
+
+        return String(
+            describing: output
         )
     }
 
