@@ -49,7 +49,7 @@ enum BedrockToolMapper {
                     result.output
                 )
             ],
-            status: result.isError ? .error : .success
+            status: nil
         )
     }
 
