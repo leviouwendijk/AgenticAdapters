@@ -215,6 +215,17 @@ extension AgenticAdaptersFlowTesting {
                                         "ok": .bool(true)
                                     ])
                                 )
+                            ),
+                            .tool_result(
+                                .init(
+                                    toolCallID: "tool-2",
+                                    name: "edit_file",
+                                    output: .object([
+                                        "kind": .string("tool_error"),
+                                        "message": .string("Edit line payload contains newline characters and is not a single logical line.")
+                                    ]),
+                                    isError: true
+                                )
                             )
                         ]
                     )
@@ -232,11 +243,12 @@ extension AgenticAdaptersFlowTesting {
             "mapped message"
         )
 
-        guard case .toolResult(let result) = message.content.first else {
-            throw TestFlowAssertionFailure(
-                label: "tool result",
-                message: "expected Bedrock toolResult content"
-            )
+        let results = message.content.compactMap { block -> Bedrock.Converse.ToolResult? in
+            guard case .toolResult(let result) = block else {
+                return nil
+            }
+
+            return result
         }
 
         try Expect.equal(
@@ -245,14 +257,33 @@ extension AgenticAdaptersFlowTesting {
             "tool result role"
         )
         try Expect.equal(
-            result.toolUseId,
+            results.count,
+            2,
+            "tool result count"
+        )
+
+        let successResult = results[0]
+        let errorResult = results[1]
+
+        try Expect.equal(
+            successResult.toolUseId,
             "tool-1",
-            "tool use id"
+            "success tool use id"
         )
         try Expect.equal(
-            result.status,
+            successResult.status,
             .success,
-            "tool result status"
+            "success tool result status"
+        )
+        try Expect.equal(
+            errorResult.toolUseId,
+            "tool-2",
+            "error tool use id"
+        )
+        try Expect.equal(
+            errorResult.status,
+            .error,
+            "error tool result status"
         )
 
         return [
@@ -260,8 +291,12 @@ extension AgenticAdaptersFlowTesting {
                 request
             ),
             .field(
-                "toolUseId",
-                result.toolUseId
+                "successToolUseId",
+                successResult.toolUseId
+            ),
+            .field(
+                "errorToolUseId",
+                errorResult.toolUseId
             )
         ]
     }

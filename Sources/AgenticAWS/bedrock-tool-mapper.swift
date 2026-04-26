@@ -1,7 +1,7 @@
 import Agentic
 import AWSConnector
-import Primitives
 import Foundation
+import Primitives
 
 enum BedrockToolMapper {
     static func map(
@@ -52,7 +52,7 @@ enum BedrockToolMapper {
                     )
                 )
             ],
-            status: nil
+            status: result.isError ? .error : .success
         )
     }
 
@@ -81,20 +81,6 @@ enum BedrockToolMapper {
             describing: output
         )
     }
-
-    // static func map(
-    //     _ result: AgentToolResult
-    // ) -> Bedrock.Converse.ToolResult {
-    //     .init(
-    //         toolUseId: result.toolCallID,
-    //         content: [
-    //             .json(
-    //                 result.output
-    //             )
-    //         ],
-    //         status: nil
-    //     )
-    // }
 
     private static let defaultSchema: JSONValue = .object([
         "type": .string("object"),
