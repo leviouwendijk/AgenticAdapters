@@ -37,10 +37,9 @@ enum BedrockMessageMapper {
                 )
 
             case .tool:
-                mapped.append(
-                    try toolMessage(
-                        message
-                    )
+                try appendToolMessage(
+                    message,
+                    to: &mapped
                 )
             }
         }
@@ -127,6 +126,44 @@ private extension BedrockMessageMapper {
             role: .user,
             content: content
         )
+    }
+
+    static func appendToolMessage(
+        _ message: AgentMessage,
+        to mapped: inout [Bedrock.Converse.Message]
+    ) throws {
+        let next = try toolMessage(
+            message
+        )
+
+        guard let last = mapped.last,
+              last.role == .user,
+              last.content.allSatisfy(isToolResultBlock),
+              next.content.allSatisfy(isToolResultBlock)
+        else {
+            mapped.append(
+                next
+            )
+            return
+        }
+
+        mapped.removeLast()
+        mapped.append(
+            .init(
+                role: .user,
+                content: last.content + next.content
+            )
+        )
+    }
+
+    static func isToolResultBlock(
+        _ block: Bedrock.Converse.ContentBlock
+    ) -> Bool {
+        guard case .toolResult = block else {
+            return false
+        }
+
+        return true
     }
 
     static func contentBlock(
