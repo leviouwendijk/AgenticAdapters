@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "438101a47a2a257bf1ad04428fe8603a196db4fb"
+        "revision" : "2dd9834834cf018895b562c504d58b6626096e4d"
       }
     },
     {
@@ -133,7 +133,7 @@
       "location" : "https://github.com/leviouwendijk/Path.git",
       "state" : {
         "branch" : "master",
-        "revision" : "6bc4b37b70944d2607b54c0c479ba607c1c4dcf3"
+        "revision" : "8693f15d32ed07a62eb1a8ff800a1e89b3a72199"
       }
     },
     {
@@ -214,7 +214,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "d1d40273bdf557d99e5c4a767789ee662475cfd7"
+        "revision" : "305fdce077b899a76eacbdb0f193b0c7542c6322"
       }
     },
     {
@@ -259,7 +259,7 @@
       "location" : "https://github.com/leviouwendijk/Writers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c44235a7b2fc61793bc6cf35a65318bd66743816"
+        "revision" : "3190f86e040e0832a343418b21b1cb690c396853"
       }
     }
   ],
