@@ -121,53 +121,6 @@ public struct BedrockModelDiscovery: Sendable {
             )
         }
     }
-
-    public func snapshot(
-        options: BedrockModelDiscoveryOptions = .default,
-        adapterIdentifier: AgentModelAdapterIdentifier = .aws_bedrock,
-        purposes: Set<AgentModelRoutePurpose> = [
-            .executor,
-            .advisor,
-            .reviewer,
-            .summarizer,
-            .classifier,
-            .extractor,
-            .coder
-        ],
-        capabilities: Set<AgentModelCapability> = [
-            .text,
-            .tool_use,
-            .streaming,
-            .structured_output,
-            .reasoning
-        ],
-        cost: AgentModelCostClass = .balanced,
-        latency: AgentModelLatencyClass = .medium,
-        privacy: AgentModelPrivacyClass = .private_cloud
-    ) async throws -> BedrockProfileSnapshot {
-        let handles = try await handles(
-            options: options
-        )
-
-        let profiles = handles.map { handle in
-            BedrockModelProfiles.profile(
-                handle: handle,
-                adapterIdentifier: adapterIdentifier,
-                purposes: purposes,
-                capabilities: capabilities,
-                cost: cost,
-                latency: latency,
-                privacy: privacy
-            )
-        }
-
-        return .init(
-            region: control.region,
-            createdAt: Date(),
-            handles: handles,
-            profiles: profiles
-        )
-    }
 }
 
 private extension BedrockModelDiscovery {

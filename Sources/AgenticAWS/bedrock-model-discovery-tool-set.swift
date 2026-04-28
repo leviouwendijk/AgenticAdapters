@@ -222,16 +222,19 @@ private extension BedrockModelDiscoveryToolSet {
             description: "List Agentic model profiles synthesized from AWS Bedrock model discovery.",
             risk: .observe
         ) { input in
-            let snapshot = try await discovery.snapshot(
+            let handles = try await discovery.handles(
                 options: input.options
+            )
+            let profiles = discovery.profiles(
+                from: handles
             )
 
             return BedrockListDiscoveredProfilesToolOutput(
-                region: snapshot.region,
-                handleCount: snapshot.handles.count,
-                profileCount: snapshot.profiles.count,
-                handles: snapshot.handles,
-                profiles: snapshot.profiles
+                region: discovery.control.region,
+                handleCount: handles.count,
+                profileCount: profiles.count,
+                handles: handles,
+                profiles: profiles
             )
         }
     }
