@@ -40,6 +40,34 @@ enum AgenticAdaptersFlowSuite: TestFlowRegistry {
         },
 
         TestFlow(
+            ID.bedrock_model_handle_profile_synthesis,
+            tags: ["aws", "bedrock", "model-discovery", "model-routing", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockModelHandleProfileSynthesis()
+        },
+
+        TestFlow(
+            ID.bedrock_non_streaming_handle_drops_streaming_capability,
+            tags: ["aws", "bedrock", "model-discovery", "model-routing", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockNonStreamingHandleDropsStreamingCapability()
+        },
+
+        TestFlow(
+            ID.bedrock_generic_snapshot_provider_catalog,
+            tags: ["aws", "bedrock", "model-discovery", "model-routing", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockGenericSnapshotProviderCatalog()
+        },
+
+        TestFlow(
+            ID.bedrock_discovery_tool_registration,
+            tags: ["aws", "bedrock", "model-discovery", "tools", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockDiscoveryToolRegistration()
+        },
+
+        TestFlow(
             ID.adapter_stream_supported,
             tags: ["adapter", "stream", "offline"]
         ) {
@@ -87,6 +115,13 @@ enum AgenticAdaptersFlowSuite: TestFlowRegistry {
         ) {
             try await AgenticAdaptersFlowTesting.runAppleLiveScratchpadReadWriteLoop()
         },
+
+        TestFlow(
+            ID.bedrock_live_nested_profile_api,
+            tags: ["aws", "bedrock", "model-discovery", "model-routing", "live"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockLiveNestedProfileAPI()
+        },
     ]
 }
 
@@ -94,13 +129,21 @@ extension AgenticAdaptersFlowSuite {
     enum ID {
         static let apple_prompt_rendering = "apple-prompt-rendering"
         static let apple_tools_unsupported = "apple-tools-unsupported"
+
         static let bedrock_buffered_stream_completion = "bedrock-buffered-stream-completion"
         static let bedrock_tool_use_stream = "bedrock-tool-use-stream"
         static let bedrock_tool_result_mapping = "bedrock-tool-result-mapping"
+        static let bedrock_model_handle_profile_synthesis = "bedrock-model-handle-profile-synthesis"
+        static let bedrock_non_streaming_handle_drops_streaming_capability = "bedrock-non-streaming-handle-drops-streaming-capability"
+        static let bedrock_generic_snapshot_provider_catalog = "bedrock-generic-snapshot-provider-catalog"
+        static let bedrock_discovery_tool_registration = "bedrock-discovery-tool-registration"
+        static let bedrock_live_nested_profile_api = "bedrock-live-nested-profile-api"
+
         static let adapter_stream_supported = "adapter-stream-supported"
         static let adapter_tool_loop = "adapter-tool-loop"
         static let adapter_scratchpad_tool = "adapter-scratchpad-tool"
         static let adapter_scratchpad_read_write_loop = "adapter-scratchpad-read-write-loop"
+
         static let apple_live_query = "apple-live-query"
         static let apple_live_stream_query = "apple-live-stream-query"
         static let apple_live_scratchpad_read_write_loop = "apple-live-scratchpad-read-write-loop"

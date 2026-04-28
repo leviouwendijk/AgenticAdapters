@@ -25,7 +25,7 @@
       "location" : "https://github.com/leviouwendijk/AWSConnector.git",
       "state" : {
         "branch" : "master",
-        "revision" : "a7a3cc2f7cc7329e4f91c4812ac5ef78a16f2bcb"
+        "revision" : "4793806c37c357d7bb7b6819bdc12bc3d2710f1c"
       }
     },
     {
@@ -44,6 +44,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "7bf5aa7bed68cf92098653a027a1132e352f9311"
+      }
+    },
+    {
+      "identity" : "cryptography",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Cryptography.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "7357269b51d0d1b5b2f227741ce1bd8c558acfff"
       }
     },
     {
@@ -160,7 +169,7 @@
       "location" : "https://github.com/leviouwendijk/Primitives.git",
       "state" : {
         "branch" : "master",
-        "revision" : "39ed955a95a804a0ad9cbd3df3e29d8df05170cd"
+        "revision" : "cb10479454d6123641c674c9aea5b2a0b4657558"
       }
     },
     {
