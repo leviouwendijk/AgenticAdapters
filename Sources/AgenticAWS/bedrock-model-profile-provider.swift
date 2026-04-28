@@ -18,6 +18,8 @@ public struct BedrockModelProfileProvider: AgentModelProfileProvider {
         models: [String],
         defaultPurposes: Set<AgentModelRoutePurpose> = [
             .executor,
+            .planner,
+            .researcher,
             .advisor,
             .reviewer,
             .summarizer,
@@ -55,6 +57,8 @@ public struct BedrockModelProfileProvider: AgentModelProfileProvider {
         handles: [BedrockModelHandle],
         defaultPurposes: Set<AgentModelRoutePurpose> = [
             .executor,
+            .planner,
+            .researcher,
             .advisor,
             .reviewer,
             .summarizer,
@@ -209,6 +213,8 @@ public enum BedrockModelProfiles {
             model: model,
             title: title,
             purposes: [
+                .planner,
+                .researcher,
                 .advisor,
                 .reviewer,
                 .coder
