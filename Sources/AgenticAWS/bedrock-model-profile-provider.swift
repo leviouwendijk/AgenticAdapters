@@ -50,6 +50,43 @@ public struct BedrockModelProfileProvider: AgentModelProfileProvider {
         }
     }
 
+    public init(
+        adapterIdentifier: AgentModelAdapterIdentifier = .aws_bedrock,
+        handles: [BedrockModelHandle],
+        defaultPurposes: Set<AgentModelRoutePurpose> = [
+            .executor,
+            .advisor,
+            .reviewer,
+            .summarizer,
+            .classifier,
+            .extractor,
+            .coder
+        ],
+        defaultCapabilities: Set<AgentModelCapability> = [
+            .text,
+            .tool_use,
+            .streaming,
+            .structured_output,
+            .reasoning
+        ],
+        cost: AgentModelCostClass = .balanced,
+        latency: AgentModelLatencyClass = .medium,
+        privacy: AgentModelPrivacyClass = .private_cloud
+    ) {
+        self.adapterIdentifier = adapterIdentifier
+        self.storedProfiles = handles.map { handle in
+            BedrockModelProfiles.profile(
+                handle: handle,
+                adapterIdentifier: adapterIdentifier,
+                purposes: defaultPurposes,
+                capabilities: defaultCapabilities,
+                cost: cost,
+                latency: latency,
+                privacy: privacy
+            )
+        }
+    }
+
     public func profiles() throws -> [AgentModelProfile] {
         storedProfiles
     }
@@ -57,7 +94,9 @@ public struct BedrockModelProfileProvider: AgentModelProfileProvider {
 
 public enum BedrockModelProfiles {
     public static func profile(
+        identifier: AgentModelProfileIdentifier? = nil,
         model: String,
+        title: String? = nil,
         adapterIdentifier: AgentModelAdapterIdentifier = .aws_bedrock,
         purposes: Set<AgentModelRoutePurpose> = [
             .executor
@@ -78,12 +117,12 @@ public enum BedrockModelProfiles {
         metadata["adapter"] = metadata["adapter"] ?? "bedrock_converse"
 
         return .init(
-            identifier: .init(
-                "aws_bedrock:\(model)"
+            identifier: identifier ?? fallbackIdentifier(
+                model: model
             ),
             adapterIdentifier: adapterIdentifier,
             model: model,
-            title: model,
+            title: title ?? model,
             purposes: purposes,
             capabilities: capabilities,
             cost: cost,
@@ -94,11 +133,54 @@ public enum BedrockModelProfiles {
         )
     }
 
+    public static func profile(
+        handle: BedrockModelHandle,
+        adapterIdentifier: AgentModelAdapterIdentifier = .aws_bedrock,
+        purposes: Set<AgentModelRoutePurpose> = [
+            .executor
+        ],
+        capabilities: Set<AgentModelCapability> = [
+            .text,
+            .tool_use,
+            .streaming
+        ],
+        cost: AgentModelCostClass = .balanced,
+        latency: AgentModelLatencyClass = .medium,
+        privacy: AgentModelPrivacyClass = .private_cloud,
+        limits: AgentModelLimits = .unknown,
+        metadata: [String: String] = [:]
+    ) -> AgentModelProfile {
+        profile(
+            identifier: generatedIdentifier(
+                for: handle
+            ),
+            model: handle.invokeIdentifier,
+            title: handle.title,
+            adapterIdentifier: adapterIdentifier,
+            purposes: purposes,
+            capabilities: effectiveCapabilities(
+                capabilities,
+                handle: handle
+            ),
+            cost: cost,
+            latency: latency,
+            privacy: privacy,
+            limits: limits,
+            metadata: handle.metadata(
+                merging: metadata
+            )
+        )
+    }
+
     public static func novaMicro(
         _ model: String = "eu.amazon.nova-micro-v1:0"
     ) -> AgentModelProfile {
         profile(
+            identifier: .init(
+                "aws_bedrock:nova_micro"
+            ),
             model: model,
+            title: "AWS Bedrock Nova Micro",
             purposes: [
                 .executor,
                 .summarizer,
@@ -118,10 +200,14 @@ public enum BedrockModelProfiles {
     }
 
     public static func advisor(
-        _ model: String
+        _ model: String,
+        identifier: AgentModelProfileIdentifier? = nil,
+        title: String? = nil
     ) -> AgentModelProfile {
         profile(
+            identifier: identifier,
             model: model,
+            title: title,
             purposes: [
                 .advisor,
                 .reviewer,
@@ -138,6 +224,66 @@ public enum BedrockModelProfiles {
             latency: .medium,
             privacy: .private_cloud
         )
+    }
+}
+
+private extension BedrockModelProfiles {
+    static func fallbackIdentifier(
+        model: String
+    ) -> AgentModelProfileIdentifier {
+        .init(
+            "aws_bedrock:\(model)"
+        )
+    }
+
+    static func generatedIdentifier(
+        for handle: BedrockModelHandle
+    ) -> AgentModelProfileIdentifier {
+        .init(
+            [
+                "aws_bedrock",
+                handle.kind.rawValue,
+                safeIdentifierComponent(
+                    handle.invokeIdentifier
+                )
+            ].joined(
+                separator: ":"
+            )
+        )
+    }
+
+    static func safeIdentifierComponent(
+        _ value: String
+    ) -> String {
+        value.map { character in
+            if character.isLetter
+                || character.isNumber
+                || character == "-"
+                || character == "_"
+                || character == "." {
+                return String(
+                    character
+                )
+            }
+
+            return "_"
+        }.joined()
+    }
+
+    static func effectiveCapabilities(
+        _ capabilities: Set<AgentModelCapability>,
+        handle: BedrockModelHandle
+    ) -> Set<AgentModelCapability> {
+        guard handle.streaming == false else {
+            return capabilities
+        }
+
+        var capabilities = capabilities
+        capabilities.remove(
+            .streaming
+        )
+
+        return capabilities
     }
 }
 
