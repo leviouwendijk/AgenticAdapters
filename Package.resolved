@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "2dd9834834cf018895b562c504d58b6626096e4d"
+        "revision" : "0638b1059d64145469f24caf2f40bd611cf764ba"
       }
     },
     {
@@ -52,7 +52,7 @@
       "location" : "https://github.com/leviouwendijk/Difference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "999beddfaa99a991807a4e07e8c0482512c94b69"
+        "revision" : "ca0f33316fcf56ace04f1f5a1bb178667a291abc"
       }
     },
     {
@@ -214,7 +214,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "305fdce077b899a76eacbdb0f193b0c7542c6322"
+        "revision" : "bab62c2e7fd02c44cfd9eb6c6900fa8d3c6db512"
       }
     },
     {
@@ -223,7 +223,7 @@
       "location" : "https://github.com/leviouwendijk/TestFlows.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c8bc5c4b69bda6775fa126aa7af340d5198a1790"
+        "revision" : "cc6f6216e9c77cf2862c047a4666336cc47d25e8"
       }
     },
     {
@@ -259,7 +259,7 @@
       "location" : "https://github.com/leviouwendijk/Writers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3190f86e040e0832a343418b21b1cb690c396853"
+        "revision" : "68d435e982ad7e144c5600b652368cae77c48044"
       }
     }
   ],

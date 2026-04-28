@@ -2,21 +2,21 @@ import Agentic
 import AWSConnector
 import Foundation
 
-private let debug = true
-
 public struct BedrockModelAdapter: AgentModelAdapter {
     private let provider: BedrockModelResponseProvider
 
     public init(
         runtime: any BedrockModelRuntime,
         defaultModelIdentifier: String,
-        metadata: [String: String] = [:]
+        metadata: [String: String] = [:],
+        diagnostics: BedrockDiagnostics = .disabled
     ) {
         self.provider = .init(
             configuration: .init(
                 runtime: runtime,
                 defaultModelIdentifier: defaultModelIdentifier,
-                metadata: metadata
+                metadata: metadata,
+                diagnostics: diagnostics
             )
         )
     }
@@ -24,12 +24,14 @@ public struct BedrockModelAdapter: AgentModelAdapter {
     public init(
         runtime: BedrockRuntimeClient,
         defaultModelIdentifier: String,
-        metadata: [String: String] = [:]
+        metadata: [String: String] = [:],
+        diagnostics: BedrockDiagnostics = .disabled
     ) {
         self.init(
             runtime: runtime as any BedrockModelRuntime,
             defaultModelIdentifier: defaultModelIdentifier,
-            metadata: metadata
+            metadata: metadata,
+            diagnostics: diagnostics
         )
     }
 
@@ -47,12 +49,14 @@ public struct BedrockModelAdapter: AgentModelAdapter {
 
     public static func resolve(
         defaultModelIdentifier: String,
-        metadata: [String: String] = [:]
+        metadata: [String: String] = [:],
+        diagnostics: BedrockDiagnostics = .disabled
     ) throws -> Self {
         try .init(
             runtime: BedrockRuntimeClient.resolve(),
             defaultModelIdentifier: defaultModelIdentifier,
-            metadata: metadata
+            metadata: metadata,
+            diagnostics: diagnostics
         )
     }
 }
@@ -100,27 +104,10 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
                         request
                     )
 
-                    // DEBUG
-                    if debug {
-                        let encoder = JSONEncoder()
-                        encoder.outputFormatting = [
-                            .prettyPrinted,
-                            .sortedKeys
-                        ]
-
-                        let data = try encoder.encode(
+                    if configuration.diagnostics.raw {
+                        try dumpBedrockRequest(
                             bedrock
                         )
-
-                        if let text = String(
-                            data: data,
-                            encoding: .utf8
-                        ) {
-                            fputs(
-                                "\n--- Bedrock Converse Request ---\n\(text)\n--- End Bedrock Converse Request ---\n",
-                                stderr
-                            )
-                        }
                     }
 
                     let metadata = BedrockMetadata.base(
@@ -167,6 +154,32 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
             }
         }
     }
+
+    private func dumpBedrockRequest(
+        _ request: Bedrock.Converse.Request
+    ) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [
+            .prettyPrinted,
+            .sortedKeys,
+        ]
+
+        let data = try encoder.encode(
+            request
+        )
+
+        guard let text = String(
+            data: data,
+            encoding: .utf8
+        ) else {
+            return
+        }
+
+        fputs(
+            "\n--- Bedrock Converse Request ---\n\(text)\n--- End Bedrock Converse Request ---\n",
+            stderr
+        )
+    }
 }
 
 private enum BedrockMetadata {
@@ -182,4 +195,3 @@ private enum BedrockMetadata {
         return metadata
     }
 }
-
