@@ -100,6 +100,7 @@ public enum BedrockModelProfiles {
     public static func profile(
         identifier: AgentModelProfileIdentifier? = nil,
         model: String,
+        modelID: AgentModelID? = nil,
         title: String? = nil,
         adapterIdentifier: AgentModelAdapterIdentifier = .aws_bedrock,
         purposes: Set<AgentModelRoutePurpose> = [
@@ -120,12 +121,19 @@ public enum BedrockModelProfiles {
         metadata["provider"] = metadata["provider"] ?? "aws"
         metadata["adapter"] = metadata["adapter"] ?? "bedrock_converse"
 
+        if let modelID {
+            metadata["model_id"] = metadata["model_id"] ?? modelID.rawValue
+            metadata["model_provider"] = metadata["model_provider"] ?? modelID.provider.rawValue
+            metadata["model_name"] = metadata["model_name"] ?? modelID.name
+        }
+
         return .init(
             identifier: identifier ?? fallbackIdentifier(
                 model: model
             ),
             adapterIdentifier: adapterIdentifier,
             model: model,
+            modelID: modelID,
             title: title ?? model,
             purposes: purposes,
             capabilities: capabilities,
@@ -159,6 +167,7 @@ public enum BedrockModelProfiles {
                 for: handle
             ),
             model: handle.invokeIdentifier,
+            modelID: nil,
             title: handle.title,
             adapterIdentifier: adapterIdentifier,
             purposes: purposes,
@@ -184,6 +193,7 @@ public enum BedrockModelProfiles {
                 "aws_bedrock:nova_micro"
             ),
             model: model,
+            modelID: KnownModel.amazon.nova_micro,
             title: "AWS Bedrock Nova Micro",
             purposes: [
                 .executor,
@@ -205,12 +215,14 @@ public enum BedrockModelProfiles {
 
     public static func advisor(
         _ model: String,
+        modelID: AgentModelID? = nil,
         identifier: AgentModelProfileIdentifier? = nil,
         title: String? = nil
     ) -> AgentModelProfile {
         profile(
             identifier: identifier,
             model: model,
+            modelID: modelID,
             title: title,
             purposes: [
                 .planner,

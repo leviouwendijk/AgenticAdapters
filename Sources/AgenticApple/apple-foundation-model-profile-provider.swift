@@ -18,6 +18,7 @@ public struct AppleFoundationModelProfileProvider: AgentModelProfileProvider {
                 identifier: profileIdentifier,
                 adapterIdentifier: adapterIdentifier,
                 model: "foundation_models",
+                modelID: KnownModel.apple.foundation_models,
                 title: "Apple Foundation Models",
                 purposes: [
                     .executor,
@@ -36,7 +37,10 @@ public struct AppleFoundationModelProfileProvider: AgentModelProfileProvider {
                 limits: .unknown,
                 metadata: [
                     "provider": "apple",
-                    "adapter": "foundation_models"
+                    "adapter": "foundation_models",
+                    "model_id": KnownModel.apple.foundation_models.rawValue,
+                    "model_provider": KnownModel.apple.foundation_models.provider.rawValue,
+                    "model_name": KnownModel.apple.foundation_models.name
                 ]
             )
         ]
