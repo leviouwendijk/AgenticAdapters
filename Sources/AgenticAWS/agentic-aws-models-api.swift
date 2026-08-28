@@ -1,4 +1,5 @@
 import Agentic
+import AgenticModels
 
 public extension AgenticAWS {
     struct ModelAPI: Sendable {

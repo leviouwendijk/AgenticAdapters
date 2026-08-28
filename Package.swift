@@ -17,10 +17,6 @@ let package = Package(
             name: "AgenticAWS", // Bedrock, perhaps later also transcribe etc?
             targets: ["AgenticAWS"]
         ),
-        .executable(
-            name: "adtest",
-            targets: ["AgenticAdaptersTestFlows"]
-        ),
 
         // .library(
         //     name: "AgenticOpenAI",
@@ -39,8 +35,9 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticExecution.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticModels.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AWSConnector.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
 
         // .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "603.0.1"),
 
@@ -74,20 +71,12 @@ let package = Package(
             name: "AgenticAWS",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
+                .product(name: "AgenticModels", package: "AgenticModels"),
                 .product(name: "AWSConnector", package: "AWSConnector"),
             ],
         ),
 
-        .executableTarget(
-            name: "AgenticAdaptersTestFlows",
-            dependencies: [
-                "AgenticApple",
-                "AgenticAWS",
-                .product(name: "Agentic", package: "Agentic"),
-                .product(name: "TestFlows", package: "TestFlows"),
-                .product(name: "AWSConnector", package: "AWSConnector"),
-            ]
-        ),
     ]
 
     // targets: [

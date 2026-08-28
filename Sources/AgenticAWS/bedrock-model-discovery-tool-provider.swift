@@ -1,4 +1,5 @@
 import Agentic
+import AgenticExecution
 
 public struct BedrockModelDiscoveryToolProvider: AgentToolProvider {
     public var discovery: BedrockModelDiscovery
