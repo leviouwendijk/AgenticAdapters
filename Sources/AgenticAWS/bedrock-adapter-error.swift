@@ -6,6 +6,7 @@ public enum BedrockAdapterError: Error, Sendable, LocalizedError {
     case emptyMappedMessages
     case emptyContent(AgentRole)
     case unsupportedContent(AgentRole)
+    case unsupportedResource(id: String, modality: AgentModality)
     case invalidToolInput(id: String, input: String)
     case streamError(type: String, message: String?)
     case streamEndedWithoutResponse
@@ -23,6 +24,9 @@ public enum BedrockAdapterError: Error, Sendable, LocalizedError {
 
         case .unsupportedContent(let role):
             return "Bedrock adapter does not support one or more \(role.rawValue) content blocks."
+
+        case .unsupportedResource(let id, let modality):
+            return "Bedrock adapter does not yet support provider lowering for \(modality.rawValue) resource '\(id)'."
 
         case .invalidToolInput(let id, let input):
             return "Bedrock adapter could not decode streamed tool input for '\(id)': \(input)"

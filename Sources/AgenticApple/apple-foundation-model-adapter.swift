@@ -121,6 +121,16 @@ private extension AppleFoundationModelResponseProvider {
                 request.tools.map(\.name)
             )
         }
+
+        let resources = request.messages.flatMap {
+            $0.content.resources
+        }
+
+        guard resources.isEmpty else {
+            throw AppleFoundationModelError.resourcesUnsupported(
+                resources.map(\.id)
+            )
+        }
     }
 
     func generate(

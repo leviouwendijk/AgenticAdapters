@@ -174,6 +174,12 @@ private extension BedrockMessageMapper {
         case .text(let text):
             return .text(text)
 
+        case .resource(let resource):
+            throw BedrockAdapterError.unsupportedResource(
+                id: resource.id,
+                modality: resource.modality
+            )
+
         case .tool_call(let call):
             guard role == .assistant else {
                 throw BedrockAdapterError.unsupportedContent(
