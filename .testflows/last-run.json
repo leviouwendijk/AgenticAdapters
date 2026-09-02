@@ -3,12 +3,12 @@
   "failed_names" : [
 
   ],
-  "generated_at" : "2026-04-28T14:17:04Z",
-  "passed" : 17,
+  "generated_at" : "2026-09-02T12:48:41Z",
+  "passed" : 9,
   "results" : [
     {
       "display_name" : "apple-prompt-rendering",
-      "duration_seconds" : 0.00043404102325439453,
+      "duration_seconds" : 0.0035680532455444336,
       "name" : "apple-prompt-rendering",
       "status" : "passed",
       "tags" : [
@@ -18,19 +18,20 @@
       ]
     },
     {
-      "display_name" : "apple-tools-unsupported",
-      "duration_seconds" : 0.0010349750518798828,
-      "name" : "apple-tools-unsupported",
+      "display_name" : "apple-tool-bridge",
+      "duration_seconds" : 0.005568981170654297,
+      "name" : "apple-tool-bridge",
       "status" : "passed",
       "tags" : [
         "apple",
         "foundation-models",
-        "offline"
+        "offline",
+        "tool-use"
       ]
     },
     {
       "display_name" : "bedrock-buffered-stream-completion",
-      "duration_seconds" : 0.0007499456405639648,
+      "duration_seconds" : 0.0025919675827026367,
       "name" : "bedrock-buffered-stream-completion",
       "status" : "passed",
       "tags" : [
@@ -42,7 +43,7 @@
     },
     {
       "display_name" : "bedrock-tool-use-stream",
-      "duration_seconds" : 0.0013440847396850586,
+      "duration_seconds" : 0.00039005279541015625,
       "name" : "bedrock-tool-use-stream",
       "status" : "passed",
       "tags" : [
@@ -55,7 +56,7 @@
     },
     {
       "display_name" : "bedrock-tool-result-mapping",
-      "duration_seconds" : 0.00037801265716552734,
+      "duration_seconds" : 0.00020503997802734375,
       "name" : "bedrock-tool-result-mapping",
       "status" : "passed",
       "tags" : [
@@ -67,7 +68,7 @@
     },
     {
       "display_name" : "bedrock-model-handle-profile-synthesis",
-      "duration_seconds" : 0.00020503997802734375,
+      "duration_seconds" : 0.0003459453582763672,
       "name" : "bedrock-model-handle-profile-synthesis",
       "status" : "passed",
       "tags" : [
@@ -80,7 +81,7 @@
     },
     {
       "display_name" : "bedrock-non-streaming-handle-drops-streaming-capability",
-      "duration_seconds" : 0.00011992454528808594,
+      "duration_seconds" : 8.106231689453125e-05,
       "name" : "bedrock-non-streaming-handle-drops-streaming-capability",
       "status" : "passed",
       "tags" : [
@@ -93,7 +94,7 @@
     },
     {
       "display_name" : "bedrock-generic-snapshot-provider-catalog",
-      "duration_seconds" : 0.00022602081298828125,
+      "duration_seconds" : 0.000823974609375,
       "name" : "bedrock-generic-snapshot-provider-catalog",
       "status" : "passed",
       "tags" : [
@@ -106,7 +107,7 @@
     },
     {
       "display_name" : "bedrock-discovery-tool-registration",
-      "duration_seconds" : 0.0071070194244384766,
+      "duration_seconds" : 0.003867030143737793,
       "name" : "bedrock-discovery-tool-registration",
       "status" : "passed",
       "tags" : [
@@ -118,95 +119,10 @@
       ]
     },
     {
-      "display_name" : "adapter-stream-supported",
-      "duration_seconds" : 0.00025594234466552734,
-      "name" : "adapter-stream-supported",
-      "status" : "passed",
-      "tags" : [
-        "adapter",
-        "offline",
-        "stream"
-      ]
-    },
-    {
-      "display_name" : "adapter-tool-loop",
-      "duration_seconds" : 0.0014110803604125977,
-      "name" : "adapter-tool-loop",
-      "status" : "passed",
-      "tags" : [
-        "adapter",
-        "offline",
-        "stream",
-        "tool-use"
-      ]
-    },
-    {
-      "display_name" : "adapter-scratchpad-tool",
-      "duration_seconds" : 0.0006819963455200195,
-      "name" : "adapter-scratchpad-tool",
-      "status" : "passed",
-      "tags" : [
-        "adapter",
-        "offline",
-        "scratchpad",
-        "tool-use"
-      ]
-    },
-    {
-      "display_name" : "adapter-scratchpad-read-write-loop",
-      "duration_seconds" : 0.0007479190826416016,
-      "name" : "adapter-scratchpad-read-write-loop",
-      "status" : "passed",
-      "tags" : [
-        "adapter",
-        "loop",
-        "offline",
-        "scratchpad",
-        "tool-use"
-      ]
-    },
-    {
-      "display_name" : "apple-live-query",
-      "duration_seconds" : 1.5203250646591187,
-      "name" : "apple-live-query",
-      "status" : "passed",
-      "tags" : [
-        "apple",
-        "foundation-models",
-        "live"
-      ]
-    },
-    {
-      "display_name" : "apple-live-stream-query",
-      "duration_seconds" : 0.34733104705810547,
-      "name" : "apple-live-stream-query",
-      "status" : "passed",
-      "tags" : [
-        "apple",
-        "foundation-models",
-        "live",
-        "stream"
-      ]
-    },
-    {
-      "display_name" : "apple-live-scratchpad-read-write-loop",
-      "duration_seconds" : 0.41626298427581787,
-      "name" : "apple-live-scratchpad-read-write-loop",
-      "status" : "passed",
-      "tags" : [
-        "apple",
-        "foundation-models",
-        "live",
-        "loop",
-        "scratchpad",
-        "tool-use"
-      ]
-    },
-    {
       "display_name" : "bedrock-live-nested-profile-api",
-      "duration_seconds" : 5.6650470495224,
+      "duration_seconds" : 0.0004769563674926758,
       "name" : "bedrock-live-nested-profile-api",
-      "status" : "passed",
+      "status" : "skipped",
       "tags" : [
         "aws",
         "bedrock",
@@ -216,7 +132,7 @@
       ]
     }
   ],
-  "skipped" : 0,
+  "skipped" : 1,
   "title" : "AgenticAdapters flow tests",
-  "total" : 17
+  "total" : 10
 }

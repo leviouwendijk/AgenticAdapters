@@ -35,18 +35,7 @@ enum AdapterFlowDiagnostics {
         )
     }
 
-    static func events(
-        _ events: [AgentRunEvent]
-    ) -> TestFlowDiagnostic {
-        .field(
-            "events",
-            events.map(\.kind.rawValue).joined(
-                separator: ","
-            )
-        )
-    }
 }
-
 private extension AdapterFlowDiagnostics {
     static func requestLines(
         _ request: AgentRequest

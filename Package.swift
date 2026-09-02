@@ -17,7 +17,6 @@ let package = Package(
             name: "AgenticAWS", // Bedrock, perhaps later also transcribe etc?
             targets: ["AgenticAWS"]
         ),
-
         // .library(
         //     name: "AgenticOpenAI",
         //     targets: ["AgenticOpenAI"]
@@ -32,12 +31,21 @@ let package = Package(
         //     name: "AgenticOllama",
         //     targets: ["AgenticOllama"]
         // ),
+        // ------------------------------------------
+        // TEST TARGET
+        .executable(
+            name: "adaptest",
+            targets: ["AgenticAdaptersTestFlows"]
+        ),
+
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticExecution.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticModels.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AWSConnector.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
 
         // .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "603.0.1"),
 
@@ -65,6 +73,7 @@ let package = Package(
             name: "AgenticApple",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Primitives", package: "Primitives"),
             ],
         ),
         .target(
@@ -76,9 +85,19 @@ let package = Package(
                 .product(name: "AWSConnector", package: "AWSConnector"),
             ],
         ),
-
+        .executableTarget(
+            name: "AgenticAdaptersTestFlows",
+            dependencies: [
+                "AgenticApple",
+                "AgenticAWS",
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticModels", package: "AgenticModels"),
+                .product(name: "Primitives", package: "Primitives"),
+                .product(name: "AWSConnector", package: "AWSConnector"),
+                .product(name: "TestFlows", package: "TestFlows"),
+            ]
+        ),
     ]
-
     // targets: [
     //     .target(
     //         name: "AgenticAdapters"

@@ -6,6 +6,8 @@ public enum AppleFoundationModelError: Error, Sendable, Equatable, LocalizedErro
     case modelUnavailable(String)
     case namedModelUnsupported(String)
     case toolsUnsupported([String])
+    case toolSchemaUnsupported(tool: String, detail: String)
+    case toolArgumentsInvalid(tool: String, detail: String)
     case resourcesUnsupported([String])
     case streamingUnsupported
     case emptyPrompt
@@ -26,8 +28,13 @@ public enum AppleFoundationModelError: Error, Sendable, Equatable, LocalizedErro
             return "FoundationModels adapter V1 only supports the default system model; requested '\(model)'."
 
         case .toolsUnsupported(let tools):
-            return "FoundationModels adapter V1 does not support tool bridging yet: \(tools.joined(separator: ", "))."
+            return "FoundationModels tool bridging is unavailable for: \(tools.joined(separator: ", "))."
 
+        case .toolSchemaUnsupported(let tool, let detail):
+            return "FoundationModels cannot lower the input schema for tool '\(tool)': \(detail)"
+
+        case .toolArgumentsInvalid(let tool, let detail):
+            return "FoundationModels produced invalid arguments for tool '\(tool)': \(detail)"
         case .resourcesUnsupported(let resources):
             return "FoundationModels adapter does not yet support resource lowering: \(resources.joined(separator: ", "))."
 

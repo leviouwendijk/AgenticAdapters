@@ -5,6 +5,10 @@ import Foundation
 import FoundationModels
 #endif
 
+package enum AppleFoundationModelGenerationResult: Sendable {
+    case text(String)
+    case toolCall(AgentToolCall)
+}
 public struct AppleFoundationModelAdapter: AgentModelAdapter {
     private let provider: AppleFoundationModelResponseProvider
 
@@ -31,16 +35,34 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
             request: request
         )
 
-        let text = try await generate(
-            prompt: prompt
+        let generation = try await generate(
+            prompt: prompt,
+            tools: request.tools
         )
+        let message: AgentMessage
+        let stopReason: AgentStopReason
 
-        return AgentResponse(
-            message: .init(
+        switch generation {
+        case .text(let text):
+            message = .init(
                 role: .assistant,
                 text: text
-            ),
-            stopReason: .end_turn,
+            )
+            stopReason = .end_turn
+
+        case .toolCall(let call):
+            message = .init(
+                role: .assistant,
+                content: .init(
+                    blocks: [.tool_call(call)]
+                )
+            )
+            stopReason = .tool_use
+        }
+
+        return AgentResponse(
+            message: message,
+            stopReason: stopReason,
             usage: nil,
             metadata: [
                 "provider": "apple",
@@ -72,14 +94,21 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
                             new
                         }
                     )
-                    let text = response.message.content.text
-
-                    if !text.isEmpty {
-                        continuation.yield(
-                            .messagedelta(
-                                .text(text)
+                    for block in response.message.content.blocks {
+                        switch block {
+                        case .text(let text) where !text.isEmpty:
+                            continuation.yield(
+                                .messagedelta(.text(text))
                             )
-                        )
+
+                        case .tool_call:
+                            continuation.yield(
+                                .messagedelta(block)
+                            )
+
+                        default:
+                            continue
+                        }
                     }
 
                     continuation.yield(
@@ -116,11 +145,6 @@ private extension AppleFoundationModelResponseProvider {
             )
         }
 
-        guard request.tools.isEmpty else {
-            throw AppleFoundationModelError.toolsUnsupported(
-                request.tools.map(\.name)
-            )
-        }
 
         let resources = request.messages.flatMap {
             $0.content.resources
@@ -134,12 +158,14 @@ private extension AppleFoundationModelResponseProvider {
     }
 
     func generate(
-        prompt: String
-    ) async throws -> String {
+        prompt: String,
+        tools: [AgentToolDefinition]
+    ) async throws -> AppleFoundationModelGenerationResult {
         #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {
             return try await generateWithFoundationModels(
-                prompt: prompt
+                prompt: prompt,
+                tools: tools
             )
         } else {
             throw AppleFoundationModelError.operatingSystemUnavailable
@@ -152,8 +178,9 @@ private extension AppleFoundationModelResponseProvider {
     #if canImport(FoundationModels)
     @available(macOS 26.0, *)
     func generateWithFoundationModels(
-        prompt: String
-    ) async throws -> String {
+        prompt: String,
+        tools: [AgentToolDefinition]
+    ) async throws -> AppleFoundationModelGenerationResult {
         let model = SystemLanguageModel.default
 
         switch model.availability {
@@ -162,30 +189,44 @@ private extension AppleFoundationModelResponseProvider {
 
         case .unavailable(let reason):
             throw AppleFoundationModelError.modelUnavailable(
-                String(
-                    describing: reason
-                )
+                String(describing: reason)
             )
         }
 
         do {
+            let bridgedTools = try AppleFoundationModelToolBridge.tools(
+                for: tools
+            )
             let session = LanguageModelSession(
-                model: model
+                model: model,
+                tools: bridgedTools
             )
             let response = try await session.respond(
                 to: prompt
             )
 
-            return response.content.trimmingCharacters(
-                in: .whitespacesAndNewlines
+            return .text(
+                response.content.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+            )
+        } catch let error as LanguageModelSession.ToolCallError {
+            if let requested = error.underlyingError as? AppleFoundationModelToolCallRequested {
+                return .toolCall(requested.call)
+            }
+
+            if let adapterError = error.underlyingError as? AppleFoundationModelError {
+                throw adapterError
+            }
+
+            throw AppleFoundationModelError.generationFailed(
+                String(describing: error)
             )
         } catch let error as AppleFoundationModelError {
             throw error
         } catch {
             throw AppleFoundationModelError.generationFailed(
-                String(
-                    describing: error
-                )
+                String(describing: error)
             )
         }
     }
