@@ -17,6 +17,12 @@ enum AgenticAdaptersFlowSuite: TestFlowRegistry {
             try await AgenticAdaptersFlowTesting.runAppleToolBridge()
         },
         TestFlow(
+            ID.apple_model_provider_catalog_realization,
+            tags: ["apple", "foundation-models", "model-provider", "model-routing", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runAppleModelProviderCatalogRealization()
+        },
+        TestFlow(
             ID.bedrock_buffered_stream_completion,
             tags: ["aws", "bedrock", "offline", "stream"]
         ) {
@@ -71,6 +77,7 @@ extension AgenticAdaptersFlowSuite {
     enum ID {
         static let apple_prompt_rendering = "apple-prompt-rendering"
         static let apple_tool_bridge = "apple-tool-bridge"
+        static let apple_model_provider_catalog_realization = "apple-model-provider-catalog-realization"
         static let bedrock_buffered_stream_completion = "bedrock-buffered-stream-completion"
         static let bedrock_tool_use_stream = "bedrock-tool-use-stream"
         static let bedrock_tool_result_mapping = "bedrock-tool-result-mapping"
