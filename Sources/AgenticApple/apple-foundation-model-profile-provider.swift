@@ -17,7 +17,7 @@ public struct AppleFoundationModelProfileProvider: AgentModelProfileProvider {
             .init(
                 identifier: profileIdentifier,
                 adapterIdentifier: adapterIdentifier,
-                model: "foundation_models",
+                model: "default",
                 modelID: KnownModel.apple.foundation_models,
                 title: "Apple Foundation Models",
                 purposes: [
