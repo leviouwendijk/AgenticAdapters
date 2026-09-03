@@ -31,13 +31,8 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
             request
         )
 
-        let prompt = try AppleFoundationModelPromptRenderer.render(
-            request: request
-        )
-
         let generation = try await generate(
-            prompt: prompt,
-            tools: request.tools
+            request: request
         )
         let message: AgentMessage
         let stopReason: AgentStopReason
@@ -158,14 +153,12 @@ private extension AppleFoundationModelResponseProvider {
     }
 
     func generate(
-        prompt: String,
-        tools: [AgentToolDefinition]
+        request: AgentRequest
     ) async throws -> AppleFoundationModelGenerationResult {
         #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {
             return try await generateWithFoundationModels(
-                prompt: prompt,
-                tools: tools
+                request: request
             )
         } else {
             throw AppleFoundationModelError.operatingSystemUnavailable
@@ -178,8 +171,7 @@ private extension AppleFoundationModelResponseProvider {
     #if canImport(FoundationModels)
     @available(macOS 26.0, *)
     func generateWithFoundationModels(
-        prompt: String,
-        tools: [AgentToolDefinition]
+        request: AgentRequest
     ) async throws -> AppleFoundationModelGenerationResult {
         let model = SystemLanguageModel.default
 
@@ -195,14 +187,19 @@ private extension AppleFoundationModelResponseProvider {
 
         do {
             let bridgedTools = try AppleFoundationModelToolBridge.tools(
-                for: tools
+                for: request.tools
+            )
+            let invocation = try AppleFoundationModelTranscriptMapper.invocation(
+                for: request,
+                tools: bridgedTools
             )
             let session = LanguageModelSession(
                 model: model,
-                tools: bridgedTools
+                tools: bridgedTools,
+                transcript: invocation.transcript
             )
             let response = try await session.respond(
-                to: prompt
+                to: invocation.prompt
             )
 
             return .text(

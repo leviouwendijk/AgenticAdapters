@@ -167,6 +167,91 @@ extension AgenticAdaptersFlowTesting {
                 "lowered Apple tool count"
             )
 
+            let initialInvocation = try AppleFoundationModelTranscriptMapper.invocation(
+                for: AgentRequest(
+                    messages: [
+                        .init(
+                            role: .system,
+                            text: "Answer briefly."
+                        ),
+                        .init(
+                            role: .user,
+                            text: "Say hello."
+                        ),
+                    ],
+                    tools: [definition]
+                ),
+                tools: tools
+            )
+
+            try Expect.equal(
+                initialInvocation.prompt,
+                "Say hello.",
+                "latest user message becomes the native Apple prompt"
+            )
+
+            let initialTranscriptJSON = String(
+                decoding: try JSONEncoder().encode(
+                    initialInvocation.transcript
+                ),
+                as: UTF8.self
+            )
+
+            try Expect.equal(
+                initialTranscriptJSON.contains("Say hello."),
+                false,
+                "latest user prompt is not duplicated into native history"
+            )
+            try Expect.contains(
+                initialTranscriptJSON,
+                "Answer briefly.",
+                "native history preserves system instructions"
+            )
+            try Expect.contains(
+                initialTranscriptJSON,
+                "read_file",
+                "native history preserves current tool definitions"
+            )
+
+            let continuationInvocation = try AppleFoundationModelTranscriptMapper.invocation(
+                for: request,
+                tools: tools
+            )
+
+            try Expect.equal(
+                continuationInvocation.prompt,
+                AppleFoundationModelTranscriptMapper.toolContinuationPrompt,
+                "tool output advances through a bounded continuation prompt"
+            )
+
+            let continuationTranscriptJSON = String(
+                decoding: try JSONEncoder().encode(
+                    continuationInvocation.transcript
+                ),
+                as: UTF8.self
+            )
+
+            try Expect.contains(
+                continuationTranscriptJSON,
+                "Read the example file.",
+                "native history preserves the original user request"
+            )
+            try Expect.contains(
+                continuationTranscriptJSON,
+                "read_file",
+                "native history preserves semantic tool identity"
+            )
+            try Expect.contains(
+                continuationTranscriptJSON,
+                "Sources\\/example.swift",
+                "native history preserves semantic tool arguments"
+            )
+            try Expect.contains(
+                continuationTranscriptJSON,
+                "let value = 42",
+                "native history preserves semantic tool output"
+            )
+
             guard let tool = tools.first else {
                 throw TestFlowAssertionFailure(
                     label: "Apple tool bridge",
