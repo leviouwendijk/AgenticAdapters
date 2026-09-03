@@ -7,15 +7,6 @@ import FoundationModels
 
 
 @available(macOS 26.0, *)
-package struct AppleFoundationModelToolCallRequested: Error, Sendable {
-    package let call: AgentToolCall
-
-    package init(call: AgentToolCall) {
-        self.call = call
-    }
-}
-
-@available(macOS 26.0, *)
 package struct AppleFoundationModelToolProxy: Tool {
     package typealias Arguments = GeneratedContent
     package typealias Output = String
@@ -25,12 +16,18 @@ package struct AppleFoundationModelToolProxy: Tool {
     package let parameters: GenerationSchema
     package let includesSchemaInInstructions = true
 
-    package init(definition: AgentToolDefinition) throws {
+    private let resolver: any AgentToolCallResolver
+
+    package init(
+        definition: AgentToolDefinition,
+        resolver: any AgentToolCallResolver
+    ) throws {
         self.name = definition.name
         self.description = definition.description
         self.parameters = try AppleFoundationModelToolSchemaLowerer.parameters(
             for: definition
         )
+        self.resolver = resolver
     }
 
     package func call(arguments: GeneratedContent) async throws -> String {
@@ -48,12 +45,16 @@ package struct AppleFoundationModelToolProxy: Tool {
             )
         }
 
-        throw AppleFoundationModelToolCallRequested(
-            call: AgentToolCall(
+        let result = try await resolver.resolve(
+            AgentToolCall(
                 id: UUID().uuidString,
                 name: name,
                 input: input
             )
+        )
+
+        return try AppleFoundationModelToolOutputRenderer.render(
+            result
         )
     }
 }
@@ -61,9 +62,46 @@ package struct AppleFoundationModelToolProxy: Tool {
 @available(macOS 26.0, *)
 package enum AppleFoundationModelToolBridge {
     package static func tools(
-        for definitions: [AgentToolDefinition]
+        for definitions: [AgentToolDefinition],
+        resolver: any AgentToolCallResolver
     ) throws -> [AppleFoundationModelToolProxy] {
-        try definitions.map(AppleFoundationModelToolProxy.init)
+        try definitions.map { definition in
+            try AppleFoundationModelToolProxy(
+                definition: definition,
+                resolver: resolver
+            )
+        }
+    }
+}
+
+@available(macOS 26.0, *)
+package enum AppleFoundationModelToolOutputRenderer {
+    package static func render(
+        _ result: AgentToolResult
+    ) throws -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [
+            .sortedKeys,
+            .withoutEscapingSlashes,
+        ]
+        let data = try encoder.encode(
+            result.output
+        )
+
+        guard let output = String(
+            data: data,
+            encoding: .utf8
+        ) else {
+            throw AppleFoundationModelError.generationFailed(
+                "Could not encode tool output as UTF-8 JSON"
+            )
+        }
+
+        guard result.isError else {
+            return output
+        }
+
+        return "Tool execution failed: \(output)"
     }
 }
 

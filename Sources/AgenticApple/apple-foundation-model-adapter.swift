@@ -5,10 +5,6 @@ import Foundation
 import FoundationModels
 #endif
 
-package enum AppleFoundationModelGenerationResult: Sendable {
-    case text(String)
-    case toolCall(AgentToolCall)
-}
 public struct AppleFoundationModelAdapter: AgentModelAdapter {
     private let provider: AppleFoundationModelResponseProvider
 
@@ -27,37 +23,31 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
     public func buffered(
         request: AgentRequest
     ) async throws -> AgentResponse {
+        try await buffered(
+            request: request,
+            context: .default
+        )
+    }
+
+    public func buffered(
+        request: AgentRequest,
+        context: AgentModelInvocationContext
+    ) async throws -> AgentResponse {
         try validateRequest(
             request
         )
 
-        let generation = try await generate(
-            request: request
+        let text = try await generate(
+            request: request,
+            context: context
         )
-        let message: AgentMessage
-        let stopReason: AgentStopReason
-
-        switch generation {
-        case .text(let text):
-            message = .init(
-                role: .assistant,
-                text: text
-            )
-            stopReason = .end_turn
-
-        case .toolCall(let call):
-            message = .init(
-                role: .assistant,
-                content: .init(
-                    blocks: [.tool_call(call)]
-                )
-            )
-            stopReason = .tool_use
-        }
 
         return AgentResponse(
-            message: message,
-            stopReason: stopReason,
+            message: .init(
+                role: .assistant,
+                text: text
+            ),
+            stopReason: .end_turn,
             usage: nil,
             metadata: [
                 "provider": "apple",
@@ -70,11 +60,22 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
     public func stream(
         request: AgentRequest
     ) -> AsyncThrowingStream<AgentStreamEvent, Error> {
+        stream(
+            request: request,
+            context: .default
+        )
+    }
+
+    public func stream(
+        request: AgentRequest,
+        context: AgentModelInvocationContext
+    ) -> AsyncThrowingStream<AgentStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     let bufferedResponse = try await buffered(
-                        request: request
+                        request: request,
+                        context: context
                     )
                     let response = AgentResponse(
                         message: bufferedResponse.message,
@@ -89,6 +90,7 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
                             new
                         }
                     )
+
                     for block in response.message.content.blocks {
                         switch block {
                         case .text(let text) where !text.isEmpty:
@@ -140,7 +142,6 @@ private extension AppleFoundationModelResponseProvider {
             )
         }
 
-
         let resources = request.messages.flatMap {
             $0.content.resources
         }
@@ -153,12 +154,14 @@ private extension AppleFoundationModelResponseProvider {
     }
 
     func generate(
-        request: AgentRequest
-    ) async throws -> AppleFoundationModelGenerationResult {
+        request: AgentRequest,
+        context: AgentModelInvocationContext
+    ) async throws -> String {
         #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {
             return try await generateWithFoundationModels(
-                request: request
+                request: request,
+                resolver: context.toolCallResolver
             )
         } else {
             throw AppleFoundationModelError.operatingSystemUnavailable
@@ -171,8 +174,9 @@ private extension AppleFoundationModelResponseProvider {
     #if canImport(FoundationModels)
     @available(macOS 26.0, *)
     func generateWithFoundationModels(
-        request: AgentRequest
-    ) async throws -> AppleFoundationModelGenerationResult {
+        request: AgentRequest,
+        resolver: (any AgentToolCallResolver)?
+    ) async throws -> String {
         let model = SystemLanguageModel.default
 
         switch model.availability {
@@ -186,9 +190,23 @@ private extension AppleFoundationModelResponseProvider {
         }
 
         do {
-            let bridgedTools = try AppleFoundationModelToolBridge.tools(
-                for: request.tools
-            )
+            let bridgedTools: [AppleFoundationModelToolProxy]
+
+            if request.tools.isEmpty {
+                bridgedTools = []
+            } else {
+                guard let resolver else {
+                    throw AppleFoundationModelError.toolResolverUnavailable(
+                        request.tools.map(\.name)
+                    )
+                }
+
+                bridgedTools = try AppleFoundationModelToolBridge.tools(
+                    for: request.tools,
+                    resolver: resolver
+                )
+            }
+
             let invocation = try AppleFoundationModelTranscriptMapper.invocation(
                 for: request,
                 tools: bridgedTools
@@ -202,23 +220,11 @@ private extension AppleFoundationModelResponseProvider {
                 to: invocation.prompt
             )
 
-            return .text(
-                response.content.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
+            return response.content.trimmingCharacters(
+                in: .whitespacesAndNewlines
             )
         } catch let error as LanguageModelSession.ToolCallError {
-            if let requested = error.underlyingError as? AppleFoundationModelToolCallRequested {
-                return .toolCall(requested.call)
-            }
-
-            if let adapterError = error.underlyingError as? AppleFoundationModelError {
-                throw adapterError
-            }
-
-            throw AppleFoundationModelError.generationFailed(
-                String(describing: error)
-            )
+            throw error.underlyingError
         } catch let error as AppleFoundationModelError {
             throw error
         } catch {

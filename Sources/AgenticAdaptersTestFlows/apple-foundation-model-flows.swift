@@ -8,6 +8,33 @@ import TestFlows
 import FoundationModels
 #endif
 
+private actor AppleFoundationModelToolResolverProbe:
+    AgentToolCallResolver
+{
+    private var calls: [AgentToolCall] = []
+
+    func resolve(
+        _ call: AgentToolCall
+    ) async throws -> AgentToolResult {
+        calls.append(
+            call
+        )
+
+        return AgentToolResult(
+            toolCallID: call.id,
+            name: call.name,
+            output: .object([
+                "text": .string("let value = 42")
+            ]),
+            isError: false
+        )
+    }
+
+    func recordedCalls() -> [AgentToolCall] {
+        calls
+    }
+}
+
 extension AgenticAdaptersFlowTesting {
     static func runApplePromptRendering() async throws -> [TestFlowDiagnostic] {
         let request = AgentRequest(
@@ -157,8 +184,10 @@ extension AgenticAdaptersFlowTesting {
 
         #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {
+            let resolver = AppleFoundationModelToolResolverProbe()
             let tools = try AppleFoundationModelToolBridge.tools(
-                for: [definition]
+                for: [definition],
+                resolver: resolver
             )
 
             try Expect.equal(
@@ -261,50 +290,55 @@ extension AgenticAdaptersFlowTesting {
                 )
             }
 
-            do {
-                _ = try await tool.call(
-                    arguments: GeneratedContent(
-                        json: "{\"path\":\"Sources/example.swift\"}"
-                    )
+            let output = try await tool.call(
+                arguments: try GeneratedContent(
+                    json: "{\"path\":\"Sources/example.swift\"}"
                 )
-            } catch let requested as AppleFoundationModelToolCallRequested {
-                try Expect.equal(
-                    requested.call.name,
-                    "read_file",
-                    "intercepted Agentic tool name"
-                )
-                try Expect.equal(
-                    requested.call.input,
-                    .object([
-                        "path": .string("Sources/example.swift")
-                    ]),
-                    "intercepted Agentic tool input"
-                )
+            )
+            let resolvedCalls = await resolver.recordedCalls()
 
-                return [
-                    AdapterFlowDiagnostics.input(request),
-                    .field("tool", requested.call.name),
-                    .field("stop-boundary", "semantic tool request"),
-                    .section(
-                        "rendered",
-                        rendered.components(separatedBy: "\n")
-                    ),
-                ]
-            } catch {
+            try Expect.equal(
+                resolvedCalls.count,
+                1,
+                "Apple proxy resolves exactly one semantic Agentic call"
+            )
+
+            guard let resolvedCall = resolvedCalls.first else {
                 throw TestFlowAssertionFailure(
                     label: "Apple tool bridge",
-                    message: "unexpected interception error",
-                    actual: String(describing: error),
-                    expected: "AppleFoundationModelToolCallRequested"
+                    message: "resolver did not receive native tool call",
+                    actual: "0",
+                    expected: "1"
                 )
             }
 
-            throw TestFlowAssertionFailure(
-                label: "Apple tool bridge",
-                message: "proxy executed without yielding to AgentRunner",
-                actual: "returned",
-                expected: "semantic tool request"
+            try Expect.equal(
+                resolvedCall.name,
+                "read_file",
+                "resolved Agentic tool name"
             )
+            try Expect.equal(
+                resolvedCall.input,
+                .object([
+                    "path": .string("Sources/example.swift")
+                ]),
+                "resolved Agentic tool input"
+            )
+            try Expect.contains(
+                output,
+                "let value = 42",
+                "Apple Tool.call returns Agentic tool output instead of unwinding the native session"
+            )
+
+            return [
+                AdapterFlowDiagnostics.input(request),
+                .field("tool", resolvedCall.name),
+                .field("native-continuation", "tool result returned"),
+                .section(
+                    "rendered",
+                    rendered.components(separatedBy: "\n")
+                ),
+            ]
         }
         #endif
 
