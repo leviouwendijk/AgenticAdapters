@@ -22,8 +22,8 @@ extension AgenticAdaptersFlowTesting {
 
         try Expect.contains(
             rendered,
-            "<system>",
-            "rendered includes system section"
+            "System message:",
+            "rendered labels system history descriptively"
         )
         try Expect.contains(
             rendered,
@@ -32,13 +32,23 @@ extension AgenticAdaptersFlowTesting {
         )
         try Expect.contains(
             rendered,
-            "<user>",
-            "rendered includes user section"
+            "User message:",
+            "rendered labels user history descriptively"
         )
         try Expect.contains(
             rendered,
             "Say hello.",
             "rendered includes user content"
+        )
+        try Expect.equal(
+            rendered.contains("<system>"),
+            false,
+            "rendered does not teach a system pseudo-tag"
+        )
+        try Expect.equal(
+            rendered.contains("<user>"),
+            false,
+            "rendered does not teach a user pseudo-tag"
         )
 
         return [
@@ -106,23 +116,43 @@ extension AgenticAdaptersFlowTesting {
 
         try Expect.contains(
             rendered,
-            "<tool-call id=\"apple-tool-call\" name=\"read_file\">",
-            "prompt replays semantic tool call"
+            "Prior tool request: read_file",
+            "prompt preserves prior tool request descriptively"
         )
         try Expect.contains(
             rendered,
             "\"path\":\"Sources/example.swift\"",
-            "prompt replays exact tool input"
+            "prompt preserves exact prior tool input"
         )
         try Expect.contains(
             rendered,
-            "<tool-result id=\"apple-tool-call\" name=\"read_file\" error=\"false\">",
-            "prompt replays semantic tool result"
+            "Prior tool outcome: read_file (success)",
+            "prompt preserves prior tool result descriptively"
         )
         try Expect.contains(
             rendered,
             "let value = 42",
-            "prompt replays tool output"
+            "prompt preserves prior tool output"
+        )
+        try Expect.equal(
+            rendered.contains("<tool-call"),
+            false,
+            "prompt does not teach a textual tool-call protocol"
+        )
+        try Expect.equal(
+            rendered.contains("<tool-result"),
+            false,
+            "prompt does not teach a textual tool-result protocol"
+        )
+        try Expect.equal(
+            rendered.contains("<assistant>"),
+            false,
+            "prompt does not teach an assistant pseudo-tag"
+        )
+        try Expect.equal(
+            rendered.contains("<tool>"),
+            false,
+            "prompt does not teach a tool-role pseudo-tag"
         )
 
         #if canImport(FoundationModels)
