@@ -45,6 +45,8 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/AgenticModels.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AWSConnector.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/SchemaMacros.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
 
         // .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "603.0.1"),
@@ -83,6 +85,8 @@ let package = Package(
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "AgenticModels", package: "AgenticModels"),
                 .product(name: "AWSConnector", package: "AWSConnector"),
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "SchemaMacros", package: "SchemaMacros"),
             ],
         ),
         .executableTarget(

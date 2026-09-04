@@ -1,5 +1,5 @@
 {
-  "originHash" : "458b5ddc17b41d79f386b4d1d358aae6a4ec7c4e6285cc706aa404e285e4104a",
+  "originHash" : "acf0a2fea188ea0f76b5f27b2e955ca611d8cc9bea183b319b637a4756542ddb",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "05992e285cd10e0304ce38d39ebd2bf9a7d482cb"
+        "revision" : "8b47dae6140dc551f63a2efb41ecdc8fa30f2abf"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e326b40a5b135d3bccb2c48197e1e44ce6e08f18"
+        "revision" : "9756c3cc32cc5d247a57a04220fcdd95224ba546"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticWorkspace.git",
       "state" : {
         "branch" : "master",
-        "revision" : "a0ec00d7bc584110398979512585a3bee7e2d2be"
+        "revision" : "3e2242b2ac008e47b7e60f7771b27c60a3ec23e6"
       }
     },
     {
@@ -200,6 +200,15 @@
       }
     },
     {
+      "identity" : "schemamacros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/SchemaMacros.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "2441b49a5159c375b094672a0ba0ae338829ec32"
+      }
+    },
+    {
       "identity" : "selection",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/leviouwendijk/Selection.git",
@@ -215,6 +224,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "86a939d7bbb3e25808f88fbcedcee4069a5a5ae1"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
+        "version" : "603.0.2"
       }
     },
     {

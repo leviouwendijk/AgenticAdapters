@@ -1,7 +1,10 @@
 import Agentic
 import AgenticExecution
 import Foundation
+import Schema
+import SchemaMacros
 
+@JSONSchema
 public struct BedrockListModelHandlesToolInput: Sendable, Codable, Hashable {
     public var modelProvider: String?
     public var modelOutputModality: String?
@@ -54,6 +57,7 @@ public struct BedrockListModelHandlesToolOutput: Sendable, Codable, Hashable {
     }
 }
 
+@JSONSchema
 public struct BedrockListDiscoveredProfilesToolInput: Sendable, Codable, Hashable {
     public var modelProvider: String?
     public var modelOutputModality: String?
@@ -112,6 +116,7 @@ public struct BedrockListDiscoveredProfilesToolOutput: Sendable, Codable, Hashab
     }
 }
 
+@JSONSchema
 public struct BedrockResolveModelHandleToolInput: Sendable, Codable, Hashable {
     public var query: String
     public var modelProvider: String?
@@ -185,94 +190,114 @@ public struct BedrockModelDiscoveryToolSet: AgentToolSet {
     public func register(
         into registry: inout ToolRegistry
     ) throws {
-        try registry.register(
-            [
-                listModelHandlesTool(),
-                listDiscoveredProfilesTool(),
-                resolveModelHandleTool()
-            ]
+        try registry.register {
+            BedrockListModelHandlesTool(
+                discovery: discovery
+            )
+            BedrockListDiscoveredProfilesTool(
+                discovery: discovery
+            )
+            BedrockResolveModelHandleTool(
+                discovery: discovery
+            )
+        }
+    }
+}
+
+private struct BedrockListModelHandlesTool: AgentTool {
+    typealias Input = BedrockListModelHandlesToolInput
+    typealias Output = BedrockListModelHandlesToolOutput
+
+    let discovery: BedrockModelDiscovery
+
+    let identifier: AgentToolIdentifier = "bedrock_list_model_handles"
+    let description = "List available AWS Bedrock model invocation handles from foundation models and inference profiles."
+    let risk: ActionRisk = .observe
+
+    func call(
+        _ input: Input,
+        context _: AgentToolExecutionContext
+    ) async throws -> Output {
+        let handles = try await discovery.handles(
+            options: input.options
+        )
+
+        return BedrockListModelHandlesToolOutput(
+            region: discovery.control.region,
+            count: handles.count,
+            handles: handles
         )
     }
 }
 
-private extension BedrockModelDiscoveryToolSet {
-    func listModelHandlesTool() -> ClosureAgentTool {
-        tool(
-            "bedrock_list_model_handles",
-            input: BedrockListModelHandlesToolInput.self,
-            output: BedrockListModelHandlesToolOutput.self,
-            description: "List available AWS Bedrock model invocation handles from foundation models and inference profiles.",
-            risk: .observe
-        ) { input in
-            let handles = try await discovery.handles(
-                options: input.options
-            )
+private struct BedrockListDiscoveredProfilesTool: AgentTool {
+    typealias Input = BedrockListDiscoveredProfilesToolInput
+    typealias Output = BedrockListDiscoveredProfilesToolOutput
 
-            return BedrockListModelHandlesToolOutput(
-                region: discovery.control.region,
-                count: handles.count,
-                handles: handles
-            )
-        }
+    let discovery: BedrockModelDiscovery
+
+    let identifier: AgentToolIdentifier = "bedrock_list_discovered_profiles"
+    let description = "List Agentic model profiles synthesized from AWS Bedrock model discovery."
+    let risk: ActionRisk = .observe
+
+    func call(
+        _ input: Input,
+        context _: AgentToolExecutionContext
+    ) async throws -> Output {
+        let handles = try await discovery.handles(
+            options: input.options
+        )
+        let profiles = discovery.profiles(
+            from: handles
+        )
+
+        return BedrockListDiscoveredProfilesToolOutput(
+            region: discovery.control.region,
+            handleCount: handles.count,
+            profileCount: profiles.count,
+            handles: handles,
+            profiles: profiles
+        )
     }
+}
 
-    func listDiscoveredProfilesTool() -> ClosureAgentTool {
-        tool(
-            "bedrock_list_discovered_profiles",
-            input: BedrockListDiscoveredProfilesToolInput.self,
-            output: BedrockListDiscoveredProfilesToolOutput.self,
-            description: "List Agentic model profiles synthesized from AWS Bedrock model discovery.",
-            risk: .observe
-        ) { input in
-            let handles = try await discovery.handles(
-                options: input.options
-            )
-            let profiles = discovery.profiles(
-                from: handles
-            )
+private struct BedrockResolveModelHandleTool: AgentTool {
+    typealias Input = BedrockResolveModelHandleToolInput
+    typealias Output = BedrockResolveModelHandleToolOutput
 
-            return BedrockListDiscoveredProfilesToolOutput(
-                region: discovery.control.region,
-                handleCount: handles.count,
-                profileCount: profiles.count,
-                handles: handles,
-                profiles: profiles
-            )
-        }
-    }
+    let discovery: BedrockModelDiscovery
 
-    func resolveModelHandleTool() -> ClosureAgentTool {
-        tool(
-            "bedrock_resolve_model_handle",
-            input: BedrockResolveModelHandleToolInput.self,
-            output: BedrockResolveModelHandleToolOutput.self,
-            description: "Find Bedrock model handles matching an invocation id, title, provider, source model id, or ARN substring.",
-            risk: .observe
-        ) { input in
-            let query = input.query.trimmingCharacters(
-                in: .whitespacesAndNewlines
-            )
+    let identifier: AgentToolIdentifier = "bedrock_resolve_model_handle"
+    let description = "Find Bedrock model handles matching an invocation id, title, provider, source model id, or ARN substring."
+    let risk: ActionRisk = .observe
 
-            let handles = try await discovery.handles(
-                options: input.options
-            )
+    func call(
+        _ input: Input,
+        context _: AgentToolExecutionContext
+    ) async throws -> Output {
+        let query = input.query.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
 
-            let matches = handles.filter { handle in
-                guard !query.isEmpty else {
-                    return true
-                }
+        let handles = try await discovery.handles(
+            options: input.options
+        )
 
-                return handle.matches(
-                    query
-                )
+        let matches = handles.filter { handle in
+            guard !query.isEmpty else {
+                return true
             }
 
-            return BedrockResolveModelHandleToolOutput(
-                query: query,
-                matchCount: matches.count,
-                matches: matches
+            return handle.matches(
+                query
             )
         }
+
+        return BedrockResolveModelHandleToolOutput(
+            query: query,
+            matchCount: matches.count,
+            matches: matches
+        )
     }
 }
 
