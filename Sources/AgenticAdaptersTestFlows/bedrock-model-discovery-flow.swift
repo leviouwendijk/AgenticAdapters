@@ -284,13 +284,13 @@ extension AgenticAdaptersFlowTesting {
 
         for name in expectedNames {
             try Expect.notNil(
-                directRegistry.tool(
+                directRegistry.registeredTool(
                     named: name
                 ),
                 "direct registry contains \(name)"
             )
             try Expect.notNil(
-                providerRegistry.tool(
+                providerRegistry.registeredTool(
                     named: name
                 ),
                 "provider registry contains \(name)"

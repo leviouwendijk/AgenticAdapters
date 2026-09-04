@@ -27,10 +27,10 @@ let package = Package(
         //     targets: ["AgenticAnthropic"]
         // ),
 
-        // .library(
-        //     name: "AgenticOllama",
-        //     targets: ["AgenticOllama"]
-        // ),
+        .library(
+            name: "AgenticOllama",
+            targets: ["AgenticOllama"]
+        ),
         // ------------------------------------------
         // TEST TARGET
         .executable(
@@ -45,6 +45,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/AgenticModels.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AWSConnector.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Milieu.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/SchemaMacros.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
@@ -87,6 +88,14 @@ let package = Package(
                 .product(name: "AWSConnector", package: "AWSConnector"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "SchemaMacros", package: "SchemaMacros"),
+            ],
+        ),
+        .target(
+            name: "AgenticOllama",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Milieu", package: "Milieu"),
             ],
         ),
         .executableTarget(
