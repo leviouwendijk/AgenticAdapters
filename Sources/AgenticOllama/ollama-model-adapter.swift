@@ -66,7 +66,7 @@ public struct OllamaModelAdapter: AgentModelAdapter {
                     "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH",
                 allowedHost: endpoint.host,
                 anchorOnly: true,
-                policyMode: .strictServerAuth
+                policyMode: .basicX509
             )
             session = trusted.0
         } else {
