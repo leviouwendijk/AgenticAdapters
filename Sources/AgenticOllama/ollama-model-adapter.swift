@@ -1,12 +1,13 @@
 import Agentic
-import Cryptography
 import Foundation
 import Milieu
 
 public struct OllamaModelAdapter: AgentModelAdapter {
     private let provider: OllamaModelResponseProvider
 
-    public init(configuration: OllamaModelConfiguration) {
+    public init(
+        configuration: OllamaModelConfiguration
+    ) {
         self.init(
             configuration: configuration,
             trust: .system
@@ -68,30 +69,15 @@ public struct OllamaModelAdapter: AgentModelAdapter {
 
         let trust: OllamaURLSessionTrust
         if endpoint.scheme?.lowercased() == "https" {
-            let caSymbol =
+            let symbol =
                 "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH"
 
-            guard let caPath = EnvironmentExtractor.optional(
-                .symbol(caSymbol)
-            ) else {
-                throw OllamaAdapterError
-                    .missingTLSCACertificateConfiguration(
-                        symbol: caSymbol
-                    )
-            }
-
-            do {
-                _ = try CryptographicTLSCertificateLoader
-                    .loadCertificate(at: caPath)
-            } catch {
-                throw OllamaAdapterError.invalidTLSCACertificate(
-                    path: caPath,
-                    reason: error.localizedDescription
-                )
-            }
+            // Fail during provider resolution if the configured HTTPS
+            // transport does not have its explicitly required CA path.
+            _ = try EnvironmentExtractor.value(symbol)
 
             trust = .privateCA(
-                caCertificatePathSymbol: caSymbol
+                caCertificatePathSymbol: symbol
             )
         } else {
             trust = .system
@@ -110,7 +96,9 @@ public struct OllamaModelResponseProvider:
     public let configuration: OllamaModelConfiguration
     let trust: OllamaURLSessionTrust
 
-    public init(configuration: OllamaModelConfiguration) {
+    public init(
+        configuration: OllamaModelConfiguration
+    ) {
         self.configuration = configuration
         self.trust = .system
     }
@@ -127,15 +115,18 @@ public struct OllamaModelResponseProvider:
         request: AgentRequest
     ) async throws -> AgentResponse {
         var response: AgentResponse?
+
         for try await event in stream(request: request) {
             if case .completed(let completed) = event {
                 response = completed
             }
         }
+
         guard let response else {
             throw OllamaAdapterError
                 .streamEndedWithoutResponse
         }
+
         return response
     }
 
@@ -149,6 +140,7 @@ public struct OllamaModelResponseProvider:
                         request,
                         configuration: configuration
                     )
+
                     let selectedModel =
                         OllamaRequestMapper.model(
                             request,
@@ -169,10 +161,10 @@ public struct OllamaModelResponseProvider:
                         OllamaStreamAccumulator(
                             metadata: metadata
                         )
-                    let runtime =
-                        OllamaURLSessionRuntime(
-                            trust: trust
-                        )
+
+                    let runtime = OllamaURLSessionRuntime(
+                        trust: trust
+                    )
 
                     for try await chunk in runtime.stream(
                         mapped,
@@ -182,9 +174,7 @@ public struct OllamaModelResponseProvider:
                             throw CancellationError()
                         }
 
-                        for event in accumulator.consume(
-                            chunk
-                        ) {
+                        for event in accumulator.consume(chunk) {
                             continuation.yield(event)
                         }
                     }
