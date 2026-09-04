@@ -6,13 +6,20 @@ import Milieu
 public struct OllamaModelAdapter: AgentModelAdapter {
     private let provider: OllamaModelResponseProvider
 
-    public init(
+    public init(configuration: OllamaModelConfiguration) {
+        self.init(
+            configuration: configuration,
+            trust: .system
+        )
+    }
+
+    private init(
         configuration: OllamaModelConfiguration,
-        session: URLSession = .shared
+        trust: OllamaURLSessionTrust
     ) {
         self.provider = .init(
             configuration: configuration,
-            session: session
+            trust: trust
         )
     }
 
@@ -44,10 +51,13 @@ public struct OllamaModelAdapter: AgentModelAdapter {
         thinking: Bool = false,
         metadata: [String: String] = [:]
     ) throws -> Self {
-        let rawEndpoint = try EnvironmentExtractor.value("AGENTIC_MODEL_OLLAMA_ENDPOINT")
+        let rawEndpoint = try EnvironmentExtractor.value(
+            "AGENTIC_MODEL_OLLAMA_ENDPOINT"
+        )
         guard let endpoint = URL(string: rawEndpoint) else {
             throw OllamaAdapterError.invalidEndpoint(rawEndpoint)
         }
+
         let configuration = try OllamaModelConfiguration(
             endpoint: endpoint,
             defaultModelIdentifier: defaultModelIdentifier,
@@ -56,43 +66,66 @@ public struct OllamaModelAdapter: AgentModelAdapter {
             metadata: metadata
         )
 
-        let session: URLSession
-        if endpoint.scheme?.lowercased() == "https",
-           EnvironmentExtractor.optional(
-               "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH"
-           ) != nil {
-            let trusted = try CryptographicCATrustedURLSession.create(
-                caCertificatePathSymbol:
-                    "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH",
-                allowedHost: endpoint.host,
-                anchorOnly: true,
-                policyMode: .basicX509
+        let trust: OllamaURLSessionTrust
+        if endpoint.scheme?.lowercased() == "https" {
+            let caSymbol =
+                "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH"
+
+            guard let caPath = EnvironmentExtractor.optional(
+                .symbol(caSymbol)
+            ) else {
+                throw OllamaAdapterError
+                    .missingTLSCACertificateConfiguration(
+                        symbol: caSymbol
+                    )
+            }
+
+            do {
+                _ = try CryptographicTLSCertificateLoader
+                    .loadCertificate(at: caPath)
+            } catch {
+                throw OllamaAdapterError.invalidTLSCACertificate(
+                    path: caPath,
+                    reason: error.localizedDescription
+                )
+            }
+
+            trust = .privateCA(
+                caCertificatePathSymbol: caSymbol
             )
-            session = trusted.0
         } else {
-            session = .shared
+            trust = .system
         }
 
         return .init(
             configuration: configuration,
-            session: session
+            trust: trust
         )
     }
 }
 
-public struct OllamaModelResponseProvider: AgentModelResponseProviding {
+public struct OllamaModelResponseProvider:
+    AgentModelResponseProviding
+{
     public let configuration: OllamaModelConfiguration
-    let session: URLSession
+    let trust: OllamaURLSessionTrust
 
-    public init(
-        configuration: OllamaModelConfiguration,
-        session: URLSession = .shared
-    ) {
+    public init(configuration: OllamaModelConfiguration) {
         self.configuration = configuration
-        self.session = session
+        self.trust = .system
     }
 
-    public func buffered(request: AgentRequest) async throws -> AgentResponse {
+    init(
+        configuration: OllamaModelConfiguration,
+        trust: OllamaURLSessionTrust
+    ) {
+        self.configuration = configuration
+        self.trust = trust
+    }
+
+    public func buffered(
+        request: AgentRequest
+    ) async throws -> AgentResponse {
         var response: AgentResponse?
         for try await event in stream(request: request) {
             if case .completed(let completed) = event {
@@ -100,12 +133,15 @@ public struct OllamaModelResponseProvider: AgentModelResponseProviding {
             }
         }
         guard let response else {
-            throw OllamaAdapterError.streamEndedWithoutResponse
+            throw OllamaAdapterError
+                .streamEndedWithoutResponse
         }
         return response
     }
 
-    public func stream(request: AgentRequest) -> AsyncThrowingStream<AgentStreamEvent, Error> {
+    public func stream(
+        request: AgentRequest
+    ) -> AsyncThrowingStream<AgentStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -113,32 +149,52 @@ public struct OllamaModelResponseProvider: AgentModelResponseProviding {
                         request,
                         configuration: configuration
                     )
-                    let selectedModel = OllamaRequestMapper.model(
-                        request,
-                        default: configuration.defaultModelIdentifier
-                    )
+                    let selectedModel =
+                        OllamaRequestMapper.model(
+                            request,
+                            default:
+                                configuration
+                                    .defaultModelIdentifier
+                        )
+
                     var metadata = configuration.metadata
-                    metadata["provider"] = metadata["provider"] ?? "ollama"
-                    metadata["adapter"] = metadata["adapter"] ?? "ollama_chat"
+                    metadata["provider"] =
+                        metadata["provider"] ?? "ollama"
+                    metadata["adapter"] =
+                        metadata["adapter"] ?? "ollama_chat"
                     metadata["model"] = selectedModel
                     metadata["delivery"] = "stream"
 
-                    var accumulator = OllamaStreamAccumulator(metadata: metadata)
-                    let runtime = OllamaURLSessionRuntime(
-                        session: session
-                    )
-                    for try await chunk in runtime.stream(mapped, endpoint: configuration.endpoint) {
+                    var accumulator =
+                        OllamaStreamAccumulator(
+                            metadata: metadata
+                        )
+                    let runtime =
+                        OllamaURLSessionRuntime(
+                            trust: trust
+                        )
+
+                    for try await chunk in runtime.stream(
+                        mapped,
+                        endpoint: configuration.endpoint
+                    ) {
                         if Task.isCancelled {
                             throw CancellationError()
                         }
-                        for event in accumulator.consume(chunk) {
+
+                        for event in accumulator.consume(
+                            chunk
+                        ) {
                             continuation.yield(event)
                         }
                     }
+
                     try accumulator.requireCompleted()
                     continuation.finish()
                 } catch {
-                    continuation.finish(throwing: error)
+                    continuation.finish(
+                        throwing: error
+                    )
                 }
             }
 
