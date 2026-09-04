@@ -39,10 +39,12 @@ struct OllamaURLSessionRuntime: Sendable {
                     )
 
                     func consume(
-                        session: URLSession
+                        session: URLSession,
+                        delegate: (any URLSessionTaskDelegate)? = nil
                     ) async throws {
                         let (bytes, response) = try await session.bytes(
-                            for: urlRequest
+                            for: urlRequest,
+                            delegate: delegate
                         )
 
                         guard let response =
@@ -108,9 +110,10 @@ struct OllamaURLSessionRuntime: Sendable {
                                 allowedHost: endpoint.host,
                                 anchorOnly: true,
                                 policyMode: .basicX509
-                            ) { session in
+                            ) { session, delegate in
                                 try await consume(
-                                    session: session
+                                    session: session,
+                                    delegate: delegate
                                 )
                             }
                     }
