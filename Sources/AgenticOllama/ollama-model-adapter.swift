@@ -1,12 +1,19 @@
 import Agentic
+import Cryptography
 import Foundation
 import Milieu
 
 public struct OllamaModelAdapter: AgentModelAdapter {
     private let provider: OllamaModelResponseProvider
 
-    public init(configuration: OllamaModelConfiguration) {
-        self.provider = .init(configuration: configuration)
+    public init(
+        configuration: OllamaModelConfiguration,
+        session: URLSession = .shared
+    ) {
+        self.provider = .init(
+            configuration: configuration,
+            session: session
+        )
     }
 
     public init(
@@ -41,21 +48,48 @@ public struct OllamaModelAdapter: AgentModelAdapter {
         guard let endpoint = URL(string: rawEndpoint) else {
             throw OllamaAdapterError.invalidEndpoint(rawEndpoint)
         }
-        return try .init(
+        let configuration = try OllamaModelConfiguration(
             endpoint: endpoint,
             defaultModelIdentifier: defaultModelIdentifier,
             contextWindow: contextWindow,
             thinking: thinking,
             metadata: metadata
         )
+
+        let session: URLSession
+        if endpoint.scheme?.lowercased() == "https",
+           EnvironmentExtractor.optional(
+               "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH"
+           ) != nil {
+            let trusted = try CryptographicCATrustedURLSession.create(
+                caCertificatePathSymbol:
+                    "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH",
+                allowedHost: endpoint.host,
+                anchorOnly: true,
+                policyMode: .strictServerAuth
+            )
+            session = trusted.0
+        } else {
+            session = .shared
+        }
+
+        return .init(
+            configuration: configuration,
+            session: session
+        )
     }
 }
 
 public struct OllamaModelResponseProvider: AgentModelResponseProviding {
     public let configuration: OllamaModelConfiguration
+    let session: URLSession
 
-    public init(configuration: OllamaModelConfiguration) {
+    public init(
+        configuration: OllamaModelConfiguration,
+        session: URLSession = .shared
+    ) {
         self.configuration = configuration
+        self.session = session
     }
 
     public func buffered(request: AgentRequest) async throws -> AgentResponse {
@@ -90,7 +124,9 @@ public struct OllamaModelResponseProvider: AgentModelResponseProviding {
                     metadata["delivery"] = "stream"
 
                     var accumulator = OllamaStreamAccumulator(metadata: metadata)
-                    let runtime = OllamaURLSessionRuntime()
+                    let runtime = OllamaURLSessionRuntime(
+                        session: session
+                    )
                     for try await chunk in runtime.stream(mapped, endpoint: configuration.endpoint) {
                         if Task.isCancelled {
                             throw CancellationError()
