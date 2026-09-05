@@ -7,10 +7,12 @@ public struct OllamaModelAdapter: AgentModelAdapter {
 
     public init(
         configuration: OllamaModelConfiguration
-    ) {
+    ) throws {
         self.init(
             configuration: configuration,
-            trust: .system
+            trust: try OllamaURLSessionTrust.resolve(
+                for: configuration.endpoint
+            )
         )
     }
 
@@ -31,14 +33,16 @@ public struct OllamaModelAdapter: AgentModelAdapter {
         thinking: Bool = false,
         metadata: [String: String] = [:]
     ) throws {
-        self.init(
-            configuration: try .init(
-                endpoint: endpoint,
-                defaultModelIdentifier: defaultModelIdentifier,
-                contextWindow: contextWindow,
-                thinking: thinking,
-                metadata: metadata
-            )
+        let configuration = try OllamaModelConfiguration(
+            endpoint: endpoint,
+            defaultModelIdentifier: defaultModelIdentifier,
+            contextWindow: contextWindow,
+            thinking: thinking,
+            metadata: metadata
+        )
+
+        try self.init(
+            configuration: configuration
         )
     }
 
@@ -67,25 +71,8 @@ public struct OllamaModelAdapter: AgentModelAdapter {
             metadata: metadata
         )
 
-        let trust: OllamaURLSessionTrust
-        if endpoint.scheme?.lowercased() == "https" {
-            let symbol =
-                "AGENTIC_MODEL_OLLAMA_CA_CERTIFICATE_PATH"
-
-            // Fail during provider resolution if the configured HTTPS
-            // transport does not have its explicitly required CA path.
-            _ = try EnvironmentExtractor.value(symbol)
-
-            trust = .privateCA(
-                caCertificatePathSymbol: symbol
-            )
-        } else {
-            trust = .system
-        }
-
-        return .init(
-            configuration: configuration,
-            trust: trust
+        return try .init(
+            configuration: configuration
         )
     }
 }
@@ -98,9 +85,11 @@ public struct OllamaModelResponseProvider:
 
     public init(
         configuration: OllamaModelConfiguration
-    ) {
+    ) throws {
         self.configuration = configuration
-        self.trust = .system
+        self.trust = try OllamaURLSessionTrust.resolve(
+            for: configuration.endpoint
+        )
     }
 
     init(
