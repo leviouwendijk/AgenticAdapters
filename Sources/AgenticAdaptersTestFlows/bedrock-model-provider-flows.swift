@@ -81,6 +81,23 @@ extension AgenticAdaptersFlowTesting {
 private struct BedrockModelProviderFixtureRuntime:
     BedrockModelRuntime
 {
+    func respond(
+        _ request: Bedrock.Converse.Request,
+        modelIdentifier: String
+    ) async throws -> Bedrock.Converse.Response {
+        .init(
+            output: .message(
+                .init(
+                    role: .assistant,
+                    content: [
+                        .text("fixture"),
+                    ]
+                )
+            ),
+            stopReason: "end_turn"
+        )
+    }
+
     func stream(
         _ request: Bedrock.Converse.Request,
         modelIdentifier: String

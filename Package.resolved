@@ -1,5 +1,5 @@
 {
-  "originHash" : "acf0a2fea188ea0f76b5f27b2e955ca611d8cc9bea183b319b637a4756542ddb",
+  "originHash" : "dc47aacd9a939acb7bf2bb57f2d3989eafba0c58fae38e380726c7bcd3cad67d",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9756c3cc32cc5d247a57a04220fcdd95224ba546"
+        "revision" : "d173e2005674ac660ba94517f4658d25d96541a6"
       }
     },
     {
@@ -61,7 +61,7 @@
       "location" : "https://github.com/leviouwendijk/AWSConnector.git",
       "state" : {
         "branch" : "master",
-        "revision" : "4793806c37c357d7bb7b6819bdc12bc3d2710f1c"
+        "revision" : "eafa6908e30c91df3644999d5f00b3c479f7cd39"
       }
     },
     {
@@ -70,7 +70,7 @@
       "location" : "https://github.com/leviouwendijk/Cryptography.git",
       "state" : {
         "branch" : "master",
-        "revision" : "ba5df7a99c519e0c6448303b4c6490dbf08a356a"
+        "revision" : "3be08763e9ecd9f1d965cb75c56d078bf906240f"
       }
     },
     {
@@ -88,7 +88,7 @@
       "location" : "https://github.com/leviouwendijk/DSL.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9efff74e61ff3679fce19f3cbf6df09c3bc23691"
+        "revision" : "30ec6798f883b91f697d060bb001e0e4f7a09225"
       }
     },
     {

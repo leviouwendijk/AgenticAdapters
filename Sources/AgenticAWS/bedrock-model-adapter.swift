@@ -73,21 +73,33 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
     public func buffered(
         request: AgentRequest
     ) async throws -> AgentResponse {
-        var response: AgentResponse?
+        let model = BedrockRequestMapper.model(
+            request,
+            default: configuration.defaultModelIdentifier
+        )
+        let bedrock = try BedrockRequestMapper.map(
+            request
+        )
 
-        for try await event in stream(
-            request: request
-        ) {
-            if case .completed(let completed) = event {
-                response = completed
-            }
+        if configuration.diagnostics.raw {
+            try dumpBedrockRequest(
+                bedrock
+            )
         }
 
-        guard let response else {
-            throw BedrockAdapterError.streamEndedWithoutResponse
-        }
+        let metadata = BedrockMetadata.base(
+            configuration.metadata,
+            model: model
+        )
+        let response = try await configuration.runtime.respond(
+            bedrock,
+            modelIdentifier: model
+        )
 
-        return response
+        return try BedrockResponseMapper.map(
+            response,
+            metadata: metadata
+        )
     }
 
     public func stream(

@@ -7,12 +7,9 @@ import TestFlows
 extension AgenticAdaptersFlowTesting {
     static func runBedrockBufferedStreamCompletion() async throws -> [TestFlowDiagnostic] {
         let runtime = BedrockFlowRuntime(
-            batches: [
-                BedrockFlowFixture.text(
-                    [
-                        "bedrock ",
-                        "ok"
-                    ],
+            responses: [
+                BedrockFlowFixture.response(
+                    text: "bedrock ok",
                     usage: .init(
                         inputTokens: 3,
                         outputTokens: 2,
@@ -48,6 +45,11 @@ extension AgenticAdaptersFlowTesting {
         )
         let call = try await runtime.onlyCall()
 
+        try Expect.equal(
+            call.delivery,
+            AgentModelResponseDelivery.buffered,
+            "buffered response does not use the stream path"
+        )
         try Expect.equal(
             call.model,
             "override-model",
@@ -189,11 +191,9 @@ extension AgenticAdaptersFlowTesting {
 
     static func runBedrockToolResultMapping() async throws -> [TestFlowDiagnostic] {
         let runtime = BedrockFlowRuntime(
-            batches: [
-                BedrockFlowFixture.text(
-                    [
-                        "done"
-                    ]
+            responses: [
+                BedrockFlowFixture.response(
+                    text: "done"
                 )
             ]
         )
@@ -305,16 +305,29 @@ extension AgenticAdaptersFlowTesting {
 private struct BedrockFlowCall: Sendable {
     let request: Bedrock.Converse.Request
     let model: String
+    let delivery: AgentModelResponseDelivery
 }
 
 private struct BedrockFlowRuntime: BedrockModelRuntime {
     let state: BedrockFlowRuntimeState
 
     init(
-        batches: [[Bedrock.Converse.StreamEvent]]
+        responses: [Bedrock.Converse.Response] = [],
+        batches: [[Bedrock.Converse.StreamEvent]] = []
     ) {
         self.state = .init(
+            responses: responses,
             batches: batches
+        )
+    }
+
+    func respond(
+        _ request: Bedrock.Converse.Request,
+        modelIdentifier: String
+    ) async throws -> Bedrock.Converse.Response {
+        try await state.nextResponse(
+            request: request,
+            model: modelIdentifier
         )
     }
 
@@ -371,13 +384,38 @@ private struct BedrockFlowRuntime: BedrockModelRuntime {
 }
 
 private actor BedrockFlowRuntimeState {
+    private var responses: [Bedrock.Converse.Response]
     private var batches: [[Bedrock.Converse.StreamEvent]]
     private var recorded: [BedrockFlowCall] = []
 
     init(
+        responses: [Bedrock.Converse.Response],
         batches: [[Bedrock.Converse.StreamEvent]]
     ) {
+        self.responses = responses
         self.batches = batches
+    }
+
+    func nextResponse(
+        request: Bedrock.Converse.Request,
+        model: String
+    ) throws -> Bedrock.Converse.Response {
+        recorded.append(
+            .init(
+                request: request,
+                model: model,
+                delivery: .buffered
+            )
+        )
+
+        guard !responses.isEmpty else {
+            throw TestFlowAssertionFailure(
+                label: "Bedrock fixture",
+                message: "missing buffered response"
+            )
+        }
+
+        return responses.removeFirst()
     }
 
     func next(
@@ -387,7 +425,8 @@ private actor BedrockFlowRuntimeState {
         recorded.append(
             .init(
                 request: request,
-                model: model
+                model: model,
+                delivery: .stream
             )
         )
 
@@ -407,6 +446,24 @@ private actor BedrockFlowRuntimeState {
 }
 
 private enum BedrockFlowFixture {
+    static func response(
+        text: String,
+        usage: Bedrock.Converse.Usage? = nil
+    ) -> Bedrock.Converse.Response {
+        .init(
+            output: .message(
+                .init(
+                    role: .assistant,
+                    content: [
+                        .text(text),
+                    ]
+                )
+            ),
+            stopReason: "end_turn",
+            usage: usage
+        )
+    }
+
     static func text(
         _ parts: [String],
         usage: Bedrock.Converse.Usage? = nil
