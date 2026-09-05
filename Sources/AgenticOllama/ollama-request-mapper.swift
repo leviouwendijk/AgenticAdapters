@@ -5,7 +5,8 @@ import Primitives
 struct OllamaRequestMapper {
     static func map(
         _ request: AgentRequest,
-        configuration: OllamaModelConfiguration
+        configuration: OllamaModelConfiguration,
+        stream: Bool
     ) throws -> OllamaChatRequest {
         guard !request.messages.isEmpty else {
             throw OllamaAdapterError.emptyMessages
@@ -20,7 +21,7 @@ struct OllamaRequestMapper {
             model: model(request, default: configuration.defaultModelIdentifier),
             messages: messages,
             tools: OllamaToolMapper.map(request.tools),
-            stream: true,
+            stream: stream,
             think: configuration.thinking,
             options: .init(
                 numCtx: configuration.contextWindow,

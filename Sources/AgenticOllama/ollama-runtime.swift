@@ -17,6 +17,61 @@ struct OllamaURLSessionRuntime: Sendable {
         self.trust = trust
     }
 
+    func respond(
+        _ request: OllamaChatRequest,
+        endpoint: URL
+    ) async throws -> OllamaChatChunk {
+        let url = endpoint
+            .appendingPathComponent("api")
+            .appendingPathComponent("chat")
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue(
+            "application/json",
+            forHTTPHeaderField: "Content-Type"
+        )
+        urlRequest.httpBody = try JSONEncoder().encode(
+            request
+        )
+
+        let data: Data
+        let response: URLResponse
+
+        switch trust {
+        case .system:
+            (data, response) = try await URLSession.shared.data(
+                for: urlRequest
+            )
+
+        case .privateCA(let caCertificatePathSymbol):
+            (data, response) = try await
+                CryptographicCATrustedURLSession.data(
+                    for: urlRequest,
+                    caCertificatePathSymbol:
+                        caCertificatePathSymbol,
+                    allowedHost: endpoint.host,
+                    anchorOnly: true,
+                    policyMode: .basicX509
+                )
+        }
+
+        guard let response = response as? HTTPURLResponse else {
+            throw OllamaAdapterError.invalidHTTPResponse
+        }
+
+        guard (200..<300).contains(response.statusCode) else {
+            throw OllamaAdapterError.httpStatus(
+                response.statusCode
+            )
+        }
+
+        return try JSONDecoder().decode(
+            OllamaChatChunk.self,
+            from: data
+        )
+    }
+
     func stream(
         _ request: OllamaChatRequest,
         endpoint: URL

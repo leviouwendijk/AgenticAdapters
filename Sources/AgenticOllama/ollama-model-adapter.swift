@@ -114,20 +114,38 @@ public struct OllamaModelResponseProvider:
     public func buffered(
         request: AgentRequest
     ) async throws -> AgentResponse {
-        var response: AgentResponse?
+        let mapped = try OllamaRequestMapper.map(
+            request,
+            configuration: configuration,
+            stream: false
+        )
+        let selectedModel = OllamaRequestMapper.model(
+            request,
+            default: configuration.defaultModelIdentifier
+        )
 
-        for try await event in stream(request: request) {
-            if case .completed(let completed) = event {
-                response = completed
-            }
-        }
+        var metadata = configuration.metadata
+        metadata["provider"] =
+            metadata["provider"] ?? "ollama"
+        metadata["adapter"] =
+            metadata["adapter"] ?? "ollama_chat"
+        metadata["model"] = selectedModel
+        metadata["delivery"] = "buffered"
 
-        guard let response else {
-            throw OllamaAdapterError
-                .streamEndedWithoutResponse
-        }
+        let runtime = OllamaURLSessionRuntime(
+            trust: trust
+        )
+        let response = try await runtime.respond(
+            mapped,
+            endpoint: configuration.endpoint
+        )
 
-        return response
+        var accumulator = OllamaStreamAccumulator(
+            metadata: metadata
+        )
+        _ = accumulator.consume(response)
+
+        return try accumulator.completedResponse()
     }
 
     public func stream(
@@ -138,7 +156,8 @@ public struct OllamaModelResponseProvider:
                 do {
                     let mapped = try OllamaRequestMapper.map(
                         request,
-                        configuration: configuration
+                        configuration: configuration,
+                        stream: true
                     )
 
                     let selectedModel =

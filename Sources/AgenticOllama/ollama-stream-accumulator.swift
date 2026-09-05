@@ -80,6 +80,14 @@ struct OllamaStreamAccumulator: Sendable {
         }
     }
 
+    func completedResponse() throws -> AgentResponse {
+        guard let response else {
+            throw OllamaAdapterError.streamEndedWithoutResponse
+        }
+
+        return response
+    }
+
     private func stopReason(_ reason: String?) -> AgentStopReason {
         switch reason {
         case "stop", nil:
