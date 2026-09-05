@@ -219,7 +219,7 @@ extension AgenticAdaptersFlowTesting {
                             .tool_result(
                                 .init(
                                     toolCallID: "tool-2",
-                                    name: "edit_file",
+                                    name: "fixture_tool",
                                     output: .object([
                                         "kind": .string("tool_error"),
                                         "message": .string("Edit line payload contains newline characters and is not a single logical line.")
