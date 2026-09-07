@@ -91,7 +91,7 @@ struct OllamaURLSessionRuntime: Sendable {
                             caCertificatePathSymbol,
                         allowedHost: endpoint.host,
                         anchorOnly: true,
-                        policyMode: .basicX509
+                        policyMode: .strictServerAuth
                     )
             }
         } catch is CancellationError {
@@ -213,7 +213,7 @@ struct OllamaURLSessionRuntime: Sendable {
                                         caCertificatePathSymbol,
                                     allowedHost: endpoint.host,
                                     anchorOnly: true,
-                                    policyMode: .basicX509
+                                    policyMode: .strictServerAuth
                                 ) { session, delegate in
                                     try await consume(
                                         session: session,
