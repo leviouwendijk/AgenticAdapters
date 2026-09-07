@@ -47,6 +47,8 @@ enum OllamaURLSessionTrust: Sendable {
 }
 
 struct OllamaURLSessionRuntime: Sendable {
+    private static let requestTimeoutInterval: TimeInterval = 30 * 60
+
     let trust: OllamaURLSessionTrust
 
     init(
@@ -64,6 +66,7 @@ struct OllamaURLSessionRuntime: Sendable {
             .appendingPathComponent("chat")
 
         var urlRequest = URLRequest(url: url)
+        urlRequest.timeoutInterval = Self.requestTimeoutInterval
         urlRequest.httpMethod = "POST"
         urlRequest.setValue(
             "application/json",
@@ -132,6 +135,7 @@ struct OllamaURLSessionRuntime: Sendable {
                         .appendingPathComponent("chat")
 
                     var urlRequest = URLRequest(url: url)
+                    urlRequest.timeoutInterval = Self.requestTimeoutInterval
                     urlRequest.httpMethod = "POST"
                     urlRequest.setValue(
                         "application/json",
