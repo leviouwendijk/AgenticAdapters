@@ -93,7 +93,8 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
         )
         let response = try await configuration.runtime.respond(
             bedrock,
-            modelIdentifier: model
+            modelIdentifier: model,
+            timeoutseconds: request.invocationoptions?.timeoutseconds
         )
 
         return try BedrockResponseMapper.map(
@@ -132,7 +133,8 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
 
                     for try await event in configuration.runtime.stream(
                         bedrock,
-                        modelIdentifier: model
+                        modelIdentifier: model,
+                        timeoutseconds: request.invocationoptions?.timeoutseconds
                     ) {
                         if Task.isCancelled {
                             continuation.finish(

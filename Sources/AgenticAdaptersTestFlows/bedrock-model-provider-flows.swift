@@ -83,7 +83,8 @@ private struct BedrockModelProviderFixtureRuntime:
 {
     func respond(
         _ request: Bedrock.Converse.Request,
-        modelIdentifier: String
+        modelIdentifier: String,
+        timeoutseconds: Int?
     ) async throws -> Bedrock.Converse.Response {
         .init(
             output: .message(
@@ -100,7 +101,8 @@ private struct BedrockModelProviderFixtureRuntime:
 
     func stream(
         _ request: Bedrock.Converse.Request,
-        modelIdentifier: String
+        modelIdentifier: String,
+        timeoutseconds: Int?
     ) -> AsyncThrowingStream<Bedrock.Converse.StreamEvent, Error> {
         AsyncThrowingStream { continuation in
             continuation.finish()

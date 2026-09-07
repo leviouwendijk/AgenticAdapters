@@ -122,7 +122,8 @@ public struct OllamaModelResponseProvider:
         metadata["delivery"] = "buffered"
 
         let runtime = OllamaURLSessionRuntime(
-            trust: trust
+            trust: trust,
+            timeoutseconds: request.invocationoptions?.timeoutseconds
         )
         let response = try await runtime.respond(
             mapped,
@@ -171,7 +172,8 @@ public struct OllamaModelResponseProvider:
                         )
 
                     let runtime = OllamaURLSessionRuntime(
-                        trust: trust
+                        trust: trust,
+                        timeoutseconds: request.invocationoptions?.timeoutseconds
                     )
 
                     for try await chunk in runtime.stream(

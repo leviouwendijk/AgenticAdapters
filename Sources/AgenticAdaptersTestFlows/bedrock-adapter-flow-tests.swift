@@ -37,6 +37,9 @@ extension AgenticAdaptersFlowTesting {
             generationConfiguration: .init(
                 maxOutputTokens: 24,
                 temperature: 0.0
+            ),
+            invocationoptions: .init(
+                timeoutseconds: 600
             )
         )
 
@@ -54,6 +57,11 @@ extension AgenticAdaptersFlowTesting {
             call.model,
             "override-model",
             "selected model"
+        )
+        try Expect.equal(
+            call.timeoutseconds,
+            600,
+            "buffered invocation timeout"
         )
         try Expect.equal(
             call.request.system,
@@ -136,7 +144,10 @@ extension AgenticAdaptersFlowTesting {
                     role: .user,
                     text: "Store a note."
                 )
-            ]
+            ],
+            invocationoptions: .init(
+                timeoutseconds: 1_800
+            )
         )
         var events: [AgentStreamEvent] = []
 
@@ -152,6 +163,7 @@ extension AgenticAdaptersFlowTesting {
         let call = try onlyToolCall(
             events
         )
+        let runtimeCall = try await runtime.onlyCall()
         let response = try completed(
             events
         )
@@ -177,6 +189,11 @@ extension AgenticAdaptersFlowTesting {
             response.stopReason,
             .tool_use,
             "stop reason"
+        )
+        try Expect.equal(
+            runtimeCall.timeoutseconds,
+            1_800,
+            "stream invocation timeout"
         )
 
         return [
@@ -306,6 +323,7 @@ private struct BedrockFlowCall: Sendable {
     let request: Bedrock.Converse.Request
     let model: String
     let delivery: AgentModelResponseDelivery
+    let timeoutseconds: Int?
 }
 
 private struct BedrockFlowRuntime: BedrockModelRuntime {
@@ -323,24 +341,28 @@ private struct BedrockFlowRuntime: BedrockModelRuntime {
 
     func respond(
         _ request: Bedrock.Converse.Request,
-        modelIdentifier: String
+        modelIdentifier: String,
+        timeoutseconds: Int?
     ) async throws -> Bedrock.Converse.Response {
         try await state.nextResponse(
             request: request,
-            model: modelIdentifier
+            model: modelIdentifier,
+            timeoutseconds: timeoutseconds
         )
     }
 
     func stream(
         _ request: Bedrock.Converse.Request,
-        modelIdentifier: String
+        modelIdentifier: String,
+        timeoutseconds: Int?
     ) -> AsyncThrowingStream<Bedrock.Converse.StreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     let events = try await state.next(
                         request: request,
-                        model: modelIdentifier
+                        model: modelIdentifier,
+                        timeoutseconds: timeoutseconds
                     )
 
                     for event in events {
@@ -398,13 +420,15 @@ private actor BedrockFlowRuntimeState {
 
     func nextResponse(
         request: Bedrock.Converse.Request,
-        model: String
+        model: String,
+        timeoutseconds: Int?
     ) throws -> Bedrock.Converse.Response {
         recorded.append(
             .init(
                 request: request,
                 model: model,
-                delivery: .buffered
+                delivery: .buffered,
+                timeoutseconds: timeoutseconds
             )
         )
 
@@ -420,13 +444,15 @@ private actor BedrockFlowRuntimeState {
 
     func next(
         request: Bedrock.Converse.Request,
-        model: String
+        model: String,
+        timeoutseconds: Int?
     ) throws -> [Bedrock.Converse.StreamEvent] {
         recorded.append(
             .init(
                 request: request,
                 model: model,
-                delivery: .stream
+                delivery: .stream,
+                timeoutseconds: timeoutseconds
             )
         )
 

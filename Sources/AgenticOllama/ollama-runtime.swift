@@ -50,11 +50,14 @@ struct OllamaURLSessionRuntime: Sendable {
     private static let requestTimeoutInterval: TimeInterval = 30 * 60
 
     let trust: OllamaURLSessionTrust
+    let timeoutseconds: Int?
 
     init(
-        trust: OllamaURLSessionTrust
+        trust: OllamaURLSessionTrust,
+        timeoutseconds: Int? = nil
     ) {
         self.trust = trust
+        self.timeoutseconds = timeoutseconds
     }
 
     func respond(
@@ -66,7 +69,9 @@ struct OllamaURLSessionRuntime: Sendable {
             .appendingPathComponent("chat")
 
         var urlRequest = URLRequest(url: url)
-        urlRequest.timeoutInterval = Self.requestTimeoutInterval
+        urlRequest.timeoutInterval =
+            timeoutseconds.map { TimeInterval($0) }
+            ?? Self.requestTimeoutInterval
         urlRequest.httpMethod = "POST"
         urlRequest.setValue(
             "application/json",
@@ -135,7 +140,9 @@ struct OllamaURLSessionRuntime: Sendable {
                         .appendingPathComponent("chat")
 
                     var urlRequest = URLRequest(url: url)
-                    urlRequest.timeoutInterval = Self.requestTimeoutInterval
+                    urlRequest.timeoutInterval =
+                        timeoutseconds.map { TimeInterval($0) }
+                        ?? Self.requestTimeoutInterval
                     urlRequest.httpMethod = "POST"
                     urlRequest.setValue(
                         "application/json",

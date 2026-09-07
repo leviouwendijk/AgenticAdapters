@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "851b38f0ff563cef4d2416c167a0e1e93617177c"
+        "revision" : "c452798d7a02cef14a811a4cca0c590a773db67b"
       }
     },
     {
@@ -61,7 +61,7 @@
       "location" : "https://github.com/leviouwendijk/AWSConnector.git",
       "state" : {
         "branch" : "master",
-        "revision" : "eafa6908e30c91df3644999d5f00b3c479f7cd39"
+        "revision" : "fcfb4929d13043c39321c0ba102f51c9830935b1"
       }
     },
     {
