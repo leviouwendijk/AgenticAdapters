@@ -98,6 +98,7 @@ let package = Package(
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Milieu", package: "Milieu"),
                 .product(name: "Cryptography", package: "Cryptography"),
+                .product(name: "Schema", package: "Schema"),
             ],
         ),
         .executableTarget(
@@ -109,6 +110,7 @@ let package = Package(
                 .product(name: "AgenticModels", package: "AgenticModels"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "AWSConnector", package: "AWSConnector"),
+                .product(name: "Schema", package: "Schema"),
                 .product(name: "TestFlows", package: "TestFlows"),
             ]
         ),

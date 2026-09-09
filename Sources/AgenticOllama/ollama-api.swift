@@ -6,6 +6,7 @@ struct OllamaChatRequest: Sendable, Encodable {
     let tools: [OllamaTool]?
     let stream: Bool
     let think: Bool
+    let format: JSONValue?
     let options: OllamaOptions
 }
 

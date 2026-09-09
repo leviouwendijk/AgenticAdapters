@@ -25,6 +25,9 @@ enum BedrockRequestMapper {
             ),
             toolConfig: BedrockToolMapper.map(
                 request.tools
+            ),
+            outputConfig: try BedrockResponseFormatMapper.map(
+                request.responseFormat
             )
         )
     }

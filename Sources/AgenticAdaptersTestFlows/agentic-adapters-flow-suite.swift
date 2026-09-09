@@ -71,6 +71,12 @@ enum AgenticAdaptersFlowSuite: TestFlowRegistry {
             try await AgenticAdaptersFlowTesting.runBedrockDiscoveryToolRegistration()
         },
         TestFlow(
+            ID.bedrock_structured_output_lowering,
+            tags: ["aws", "bedrock", "structured-output", "offline"]
+        ) {
+            try await AgenticAdaptersFlowTesting.runBedrockStructuredOutputLowering()
+        },
+        TestFlow(
             ID.bedrock_live_nested_profile_api,
             tags: ["aws", "bedrock", "model-discovery", "model-routing", "live"]
         ) {
@@ -92,6 +98,7 @@ extension AgenticAdaptersFlowSuite {
         static let bedrock_non_streaming_handle_drops_streaming_capability = "bedrock-non-streaming-handle-drops-streaming-capability"
         static let bedrock_generic_snapshot_provider_catalog = "bedrock-generic-snapshot-provider-catalog"
         static let bedrock_discovery_tool_registration = "bedrock-discovery-tool-registration"
+        static let bedrock_structured_output_lowering = "bedrock-structured-output-lowering"
         static let bedrock_live_nested_profile_api = "bedrock-live-nested-profile-api"
     }
 }

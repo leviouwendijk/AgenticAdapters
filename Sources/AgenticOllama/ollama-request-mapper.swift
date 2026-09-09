@@ -24,6 +24,9 @@ struct OllamaRequestMapper {
             tools: OllamaToolMapper.map(request.tools),
             stream: stream,
             think: configuration.thinking,
+            format: OllamaResponseFormatMapper.map(
+                request.responseFormat
+            ),
             options: .init(
                 numCtx: configuration.contextWindow,
                 numPredict: request.generationConfiguration.maxOutputTokens,

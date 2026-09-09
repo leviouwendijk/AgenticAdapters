@@ -1,7 +1,9 @@
 import Agentic
 import AgenticAWS
 import AWSConnector
+import Foundation
 import Primitives
+import Schema
 import TestFlows
 
 extension AgenticAdaptersFlowTesting {
@@ -320,6 +322,90 @@ extension AgenticAdaptersFlowTesting {
                 "errorToolUseId",
                 errorResult.toolUseId
             )
+        ]
+    }
+}
+
+extension AgenticAdaptersFlowTesting {
+    static func runBedrockStructuredOutputLowering() async throws -> [TestFlowDiagnostic] {
+        let runtime = BedrockFlowRuntime(
+            responses: [
+                BedrockFlowFixture.response(
+                    text: "{\"answer\":\"ok\"}"
+                )
+            ]
+        )
+        let adapter = BedrockModelAdapter(
+            runtime: runtime
+        )
+        let schema = JSONSchema.object(
+            properties: [
+                .init(
+                    name: "answer",
+                    schema: .string(),
+                    required: true
+                )
+            ],
+            additionalProperties: .disallowed
+        )
+        let request = AgentRequest(
+            messages: [
+                .init(
+                    role: .user,
+                    text: "Return an answer."
+                )
+            ],
+            responseFormat: .jsonschema(
+                schema
+            )
+        )
+
+        _ = try await adapter.respond(
+            request: request,
+            route: bedrockFlowRoute(
+                model: "structured-model"
+            )
+        )
+
+        let call = try await runtime.onlyCall()
+
+        guard let textFormat = call.request.outputConfig?.textFormat else {
+            throw TestFlowAssertionFailure(
+                label: "Bedrock structured output",
+                message: "expected an output text format",
+                actual: "nil",
+                expected: "json_schema"
+            )
+        }
+
+        try Expect.equal(
+            textFormat.type,
+            Bedrock.Converse.OutputFormatType.json_schema,
+            "Bedrock structured output type"
+        )
+
+        let loweredSchema = try JSONDecoder().decode(
+            JSONValue.self,
+            from: Data(
+                textFormat.structure.jsonSchema.schema.utf8
+            )
+        )
+
+        try Expect.equal(
+            loweredSchema,
+            schema.jsonvalue,
+            "Bedrock structured output schema"
+        )
+
+        return [
+            .field(
+                "format",
+                textFormat.type.rawValue
+            ),
+            .field(
+                "model",
+                call.model
+            ),
         ]
     }
 }
