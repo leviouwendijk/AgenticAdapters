@@ -31,6 +31,18 @@ extension AgenticAdaptersFlowTesting {
             "Apple Foundation Models",
             "Apple provider profile title"
         )
+        try Expect.true(
+            profile.capabilities.contains(
+                .tool_use
+            ),
+            "Apple provider advertises native tool use"
+        )
+        try Expect.true(
+            profile.capabilities.contains(
+                .structured_output
+            ),
+            "Apple provider advertises structured output"
+        )
 
         return [
             .field(

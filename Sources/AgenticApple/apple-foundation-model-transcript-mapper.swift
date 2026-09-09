@@ -5,7 +5,7 @@ import Foundation
 import FoundationModels
 
 @available(macOS 26.0, *)
-package struct AppleFoundationModelInvocation: Sendable {
+package struct AppleFoundationModelTranscriptInvocation: Sendable {
     package let transcript: Transcript
     package let prompt: String
 
@@ -27,7 +27,7 @@ package enum AppleFoundationModelTranscriptMapper {
     package static func invocation(
         for request: AgentRequest,
         tools: [AppleFoundationModelToolProxy]
-    ) throws -> AppleFoundationModelInvocation {
+    ) throws -> AppleFoundationModelTranscriptInvocation {
         let systemMessages = request.messages.filter {
             $0.role == .system
         }
@@ -233,7 +233,7 @@ package enum AppleFoundationModelTranscriptMapper {
             }
         }
 
-        return AppleFoundationModelInvocation(
+        return AppleFoundationModelTranscriptInvocation(
             transcript: Transcript(
                 entries: entries
             ),

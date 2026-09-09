@@ -8,6 +8,7 @@ public enum AppleFoundationModelError: Error, Sendable, Equatable, LocalizedErro
     case toolsUnsupported([String])
     case toolResolverUnavailable([String])
     case toolSchemaUnsupported(tool: String, detail: String)
+    case responseSchemaUnsupported(String)
     case toolArgumentsInvalid(tool: String, detail: String)
     case resourcesUnsupported([String])
     case streamingUnsupported
@@ -36,6 +37,9 @@ public enum AppleFoundationModelError: Error, Sendable, Equatable, LocalizedErro
 
         case .toolSchemaUnsupported(let tool, let detail):
             return "FoundationModels cannot lower the input schema for tool '\(tool)': \(detail)"
+
+        case .responseSchemaUnsupported(let detail):
+            return "FoundationModels cannot lower the requested response schema: \(detail)"
 
         case .toolArgumentsInvalid(let tool, let detail):
             return "FoundationModels produced invalid arguments for tool '\(tool)': \(detail)"

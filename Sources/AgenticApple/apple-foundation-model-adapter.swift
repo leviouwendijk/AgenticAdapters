@@ -25,16 +25,14 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
         route: AgentModelRoute,
         context: AgentModelInvocationContext
     ) async throws -> AgentResponse {
-        try validateRoute(
-            route
-        )
-        try validateRequest(
-            request
+        let invocation = try AppleFoundationModelInvocation(
+            parsing: request,
+            route: route,
+            context: context
         )
 
         let text = try await generate(
-            request: request,
-            context: context
+            invocation
         )
 
         return AgentResponse(
@@ -47,7 +45,7 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
             metadata: [
                 "provider": "apple",
                 "adapter": "foundation_models",
-                "model": route.profile.model,
+                "model": invocation.selectedModelIdentifier,
                 "delivery": "buffered"
             ]
         )
@@ -116,47 +114,13 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
 }
 
 private extension AppleFoundationModelResponseProvider {
-    func validateRoute(
-        _ route: AgentModelRoute
-    ) throws {
-        let model = route.profile.model.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-
-        guard model.isEmpty
-                || model == "default"
-                || model == "system"
-                || model == "system.default"
-        else {
-            throw AppleFoundationModelError.namedModelUnsupported(
-                model
-            )
-        }
-    }
-
-    func validateRequest(
-        _ request: AgentRequest
-    ) throws {
-        let resources = request.messages.flatMap {
-            $0.content.resources
-        }
-
-        guard resources.isEmpty else {
-            throw AppleFoundationModelError.resourcesUnsupported(
-                resources.map(\.id)
-            )
-        }
-    }
-
     func generate(
-        request: AgentRequest,
-        context: AgentModelInvocationContext
+        _ invocation: AppleFoundationModelInvocation
     ) async throws -> String {
         #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {
             return try await generateWithFoundationModels(
-                request: request,
-                resolver: context.toolCallResolver
+                invocation
             )
         } else {
             throw AppleFoundationModelError.operatingSystemUnavailable
@@ -169,10 +133,16 @@ private extension AppleFoundationModelResponseProvider {
     #if canImport(FoundationModels)
     @available(macOS 26.0, *)
     func generateWithFoundationModels(
-        request: AgentRequest,
-        resolver: (any AgentToolCallResolver)?
+        _ prepared: AppleFoundationModelInvocation
     ) async throws -> String {
-        let model = SystemLanguageModel.default
+        let request = prepared.request
+        let resolver = prepared.context.toolCallResolver
+        let model: SystemLanguageModel
+
+        switch prepared.model {
+        case .system:
+            model = .default
+        }
 
         switch model.availability {
         case .available:
@@ -192,7 +162,9 @@ private extension AppleFoundationModelResponseProvider {
             } else {
                 guard let resolver else {
                     throw AppleFoundationModelError.toolResolverUnavailable(
-                        request.tools.map(\.name)
+                        request.tools.map { tool in
+                            tool.name
+                        }
                     )
                 }
 
@@ -211,13 +183,30 @@ private extension AppleFoundationModelResponseProvider {
                 tools: bridgedTools,
                 transcript: invocation.transcript
             )
-            let response = try await session.respond(
-                to: invocation.prompt
+            let responseFormat = try AppleFoundationModelResponseFormat(
+                parsing: request.responseFormat
             )
 
-            return response.content.trimmingCharacters(
-                in: .whitespacesAndNewlines
-            )
+            switch responseFormat {
+            case .text:
+                let response = try await session.respond(
+                    to: invocation.prompt
+                )
+
+                return response.content.trimmingCharacters(
+                    in: CharacterSet.whitespacesAndNewlines
+                )
+
+            case .jsonschema(let schema):
+                let response = try await session.respond(
+                    to: invocation.prompt,
+                    schema: schema
+                )
+
+                return response.content.jsonString.trimmingCharacters(
+                    in: CharacterSet.whitespacesAndNewlines
+                )
+            }
         } catch let error as LanguageModelSession.ToolCallError {
             throw error.underlyingError
         } catch let error as AppleFoundationModelError {

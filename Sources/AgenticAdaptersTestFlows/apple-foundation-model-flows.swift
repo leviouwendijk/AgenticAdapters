@@ -2,6 +2,7 @@ import Agentic
 import AgenticApple
 import Foundation
 import Primitives
+import Schema
 import TestFlows
 
 #if canImport(FoundationModels)
@@ -349,6 +350,96 @@ extension AgenticAdaptersFlowTesting {
             .section(
                 "rendered",
                 rendered.components(separatedBy: "\n")
+            ),
+        ]
+    }
+
+    static func runAppleStructuredOutputLowering() async throws -> [TestFlowDiagnostic] {
+        let schema = JSONSchema.object(
+            properties: [
+                .init(
+                    name: "answer",
+                    schema: .string(),
+                    required: true
+                )
+            ],
+            additionalProperties: .disallowed
+        )
+        let request = AgentRequest(
+            messages: [
+                .init(
+                    role: .user,
+                    text: "Return an answer."
+                )
+            ],
+            responseFormat: .jsonschema(
+                schema
+            )
+        )
+        let route = AgentModelRoute(
+            purpose: .extractor,
+            profile: .init(
+                identifier: "apple.flow.fixture",
+                adapterIdentifier: .apple_foundation_models,
+                model: "default"
+            )
+        )
+        let invocation = try AppleFoundationModelInvocation(
+            parsing: request,
+            route: route,
+            context: .default
+        )
+
+        try Expect.equal(
+            invocation.model,
+            AppleFoundationModelSelectedModel.system,
+            "Apple route parses to system model"
+        )
+
+        #if canImport(FoundationModels)
+        if #available(macOS 26.0, *) {
+            let lowered = try AppleFoundationModelResponseFormat(
+                parsing: request.responseFormat
+            )
+
+            guard case .jsonschema = lowered else {
+                throw TestFlowAssertionFailure(
+                    label: "Apple structured output",
+                    message: "semantic JSON schema did not parse into a GenerationSchema response format",
+                    actual: "text",
+                    expected: "jsonschema"
+                )
+            }
+
+            return [
+                .field(
+                    "model",
+                    "system"
+                ),
+                .field(
+                    "format",
+                    "jsonschema"
+                ),
+                .field(
+                    "native-lowering",
+                    "GenerationSchema"
+                ),
+            ]
+        }
+        #endif
+
+        return [
+            .field(
+                "model",
+                "system"
+            ),
+            .field(
+                "format",
+                "jsonschema"
+            ),
+            .field(
+                "native-lowering",
+                "platform unavailable"
             ),
         ]
     }

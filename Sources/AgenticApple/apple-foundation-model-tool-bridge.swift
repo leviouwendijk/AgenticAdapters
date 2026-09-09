@@ -24,7 +24,7 @@ package struct AppleFoundationModelToolProxy: Tool {
     ) throws {
         self.name = definition.name
         self.description = definition.description
-        self.parameters = try AppleFoundationModelToolSchemaLowerer.parameters(
+        self.parameters = try AppleFoundationModelGenerationSchemaLowerer.parameters(
             for: definition
         )
         self.resolver = resolver
@@ -106,7 +106,7 @@ package enum AppleFoundationModelToolOutputRenderer {
 }
 
 @available(macOS 26.0, *)
-package enum AppleFoundationModelToolSchemaLowerer {
+package enum AppleFoundationModelGenerationSchemaLowerer {
     package static func parameters(
         for definition: AgentToolDefinition
     ) throws -> GenerationSchema {
@@ -147,10 +147,56 @@ package enum AppleFoundationModelToolSchemaLowerer {
             dependencies: []
         )
     }
+
+    package static func response(
+        _ schema: JSONValue
+    ) throws -> GenerationSchema {
+        let data = try JSONEncoder().encode(
+            schema
+        )
+        let value = try JSONSerialization.jsonObject(
+            with: data
+        )
+
+        guard let object = value as? [String: Any] else {
+            throw AppleFoundationModelError.responseSchemaUnsupported(
+                "$: Response schema must lower to a JSON object."
+            )
+        }
+
+        do {
+            let root = try dynamicSchema(
+                from: object,
+                name: "AgenticResponse",
+                tool: "agent_response",
+                path: "$"
+            )
+
+            return try GenerationSchema(
+                root: root,
+                dependencies: []
+            )
+        } catch let error as AppleFoundationModelError {
+            if case .toolSchemaUnsupported(
+                tool: _,
+                detail: let detail
+            ) = error {
+                throw AppleFoundationModelError.responseSchemaUnsupported(
+                    detail
+                )
+            }
+
+            throw error
+        } catch {
+            throw AppleFoundationModelError.responseSchemaUnsupported(
+                String(describing: error)
+            )
+        }
+    }
 }
 
 @available(macOS 26.0, *)
-private extension AppleFoundationModelToolSchemaLowerer {
+private extension AppleFoundationModelGenerationSchemaLowerer {
     static func dynamicSchema(
         from object: [String: Any],
         name: String,
@@ -191,7 +237,7 @@ private extension AppleFoundationModelToolSchemaLowerer {
                 throw unsupported(
                     tool: tool,
                     path: path,
-                    detail: "A schema containing only null cannot describe tool arguments."
+                    detail: "A schema containing only null cannot describe generated content."
                 )
             }
 

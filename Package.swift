@@ -78,6 +78,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Schema", package: "Schema"),
             ],
         ),
         .target(

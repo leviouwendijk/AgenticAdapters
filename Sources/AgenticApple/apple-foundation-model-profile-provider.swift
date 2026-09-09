@@ -29,7 +29,9 @@ public struct AppleFoundationModelProfileProvider: AgentModelProfileProvider {
                 ],
                 capabilities: [
                     .text,
-                    .streaming
+                    .tool_use,
+                    .streaming,
+                    .structured_output
                 ],
                 cost: .free,
                 latency: .low,
