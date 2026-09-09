@@ -19,11 +19,9 @@ extension AgenticAdaptersFlowTesting {
             ]
         )
         let adapter = BedrockModelAdapter(
-            runtime: runtime,
-            defaultModelIdentifier: "default-model"
+            runtime: runtime
         )
         let request = AgentRequest(
-            model: "override-model",
             messages: [
                 .init(
                     role: .system,
@@ -44,7 +42,10 @@ extension AgenticAdaptersFlowTesting {
         )
 
         let response = try await adapter.respond(
-            request: request
+            request: request,
+            route: bedrockFlowRoute(
+                model: "override-model"
+            )
         )
         let call = try await runtime.onlyCall()
 
@@ -135,8 +136,7 @@ extension AgenticAdaptersFlowTesting {
             ]
         )
         let adapter = BedrockModelAdapter(
-            runtime: runtime,
-            defaultModelIdentifier: "default-model"
+            runtime: runtime
         )
         let request = AgentRequest(
             messages: [
@@ -153,6 +153,9 @@ extension AgenticAdaptersFlowTesting {
 
         for try await event in adapter.respond(
             request: request,
+            route: bedrockFlowRoute(
+                model: "default-model"
+            ),
             delivery: .stream
         ) {
             events.append(
@@ -215,8 +218,7 @@ extension AgenticAdaptersFlowTesting {
             ]
         )
         let adapter = BedrockModelAdapter(
-            runtime: runtime,
-            defaultModelIdentifier: "default-model"
+            runtime: runtime
         )
         let request = AgentRequest(
             messages: [
@@ -251,7 +253,10 @@ extension AgenticAdaptersFlowTesting {
         )
 
         _ = try await adapter.respond(
-            request: request
+            request: request,
+            route: bedrockFlowRoute(
+                model: "default-model"
+            )
         )
 
         let call = try await runtime.onlyCall()
@@ -317,6 +322,17 @@ extension AgenticAdaptersFlowTesting {
             )
         ]
     }
+}
+
+private func bedrockFlowRoute(
+    model: String
+) -> AgentModelRoute {
+    .init(
+        purpose: .executor,
+        profile: BedrockModelProfiles.profile(
+            model: model
+        )
+    )
 }
 
 private struct BedrockFlowCall: Sendable {

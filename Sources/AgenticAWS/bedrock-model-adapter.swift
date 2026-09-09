@@ -7,14 +7,12 @@ public struct BedrockModelAdapter: AgentModelAdapter {
 
     public init(
         runtime: any BedrockModelRuntime,
-        defaultModelIdentifier: String,
         metadata: [String: String] = [:],
         diagnostics: BedrockDiagnostics = .disabled
     ) {
         self.provider = .init(
             configuration: .init(
                 runtime: runtime,
-                defaultModelIdentifier: defaultModelIdentifier,
                 metadata: metadata,
                 diagnostics: diagnostics
             )
@@ -23,13 +21,11 @@ public struct BedrockModelAdapter: AgentModelAdapter {
 
     public init(
         runtime: BedrockRuntimeClient,
-        defaultModelIdentifier: String,
         metadata: [String: String] = [:],
         diagnostics: BedrockDiagnostics = .disabled
     ) {
         self.init(
             runtime: runtime as any BedrockModelRuntime,
-            defaultModelIdentifier: defaultModelIdentifier,
             metadata: metadata,
             diagnostics: diagnostics
         )
@@ -48,13 +44,11 @@ public struct BedrockModelAdapter: AgentModelAdapter {
     }
 
     public static func resolve(
-        defaultModelIdentifier: String,
         metadata: [String: String] = [:],
         diagnostics: BedrockDiagnostics = .disabled
     ) throws -> Self {
         try .init(
             runtime: BedrockRuntimeClient.resolve(),
-            defaultModelIdentifier: defaultModelIdentifier,
             metadata: metadata,
             diagnostics: diagnostics
         )
@@ -71,12 +65,11 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
     }
 
     public func buffered(
-        request: AgentRequest
+        request: AgentRequest,
+        route: AgentModelRoute,
+        context _: AgentModelInvocationContext
     ) async throws -> AgentResponse {
-        let model = BedrockRequestMapper.model(
-            request,
-            default: configuration.defaultModelIdentifier
-        )
+        let model = route.profile.model
         let bedrock = try BedrockRequestMapper.map(
             request
         )
@@ -104,15 +97,14 @@ public struct BedrockModelResponseProvider: AgentModelResponseProviding {
     }
 
     public func stream(
-        request: AgentRequest
+        request: AgentRequest,
+        route: AgentModelRoute,
+        context _: AgentModelInvocationContext
     ) -> AsyncThrowingStream<AgentStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    let model = BedrockRequestMapper.model(
-                        request,
-                        default: configuration.defaultModelIdentifier
-                    )
+                    let model = route.profile.model
                     let bedrock = try BedrockRequestMapper.map(
                         request
                     )

@@ -41,7 +41,6 @@ private extension AdapterFlowDiagnostics {
         _ request: AgentRequest
     ) -> [String] {
         var lines: [String] = [
-            "model: \(request.model ?? "<nil>")",
             "tools: \(request.tools.map(\.name).joined(separator: ", "))"
         ]
 

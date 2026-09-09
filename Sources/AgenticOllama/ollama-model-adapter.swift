@@ -28,14 +28,12 @@ public struct OllamaModelAdapter: AgentModelAdapter {
 
     public init(
         endpoint: URL,
-        defaultModelIdentifier: String = "qwen3.5:9b",
         contextWindow: Int = 32_768,
         thinking: Bool = false,
         metadata: [String: String] = [:]
     ) throws {
         let configuration = try OllamaModelConfiguration(
             endpoint: endpoint,
-            defaultModelIdentifier: defaultModelIdentifier,
             contextWindow: contextWindow,
             thinking: thinking,
             metadata: metadata
@@ -51,7 +49,6 @@ public struct OllamaModelAdapter: AgentModelAdapter {
     }
 
     public static func resolve(
-        defaultModelIdentifier: String = "qwen3.5:9b",
         contextWindow: Int = 32_768,
         thinking: Bool = false,
         metadata: [String: String] = [:]
@@ -65,7 +62,6 @@ public struct OllamaModelAdapter: AgentModelAdapter {
 
         let configuration = try OllamaModelConfiguration(
             endpoint: endpoint,
-            defaultModelIdentifier: defaultModelIdentifier,
             contextWindow: contextWindow,
             thinking: thinking,
             metadata: metadata
@@ -101,16 +97,16 @@ public struct OllamaModelResponseProvider:
     }
 
     public func buffered(
-        request: AgentRequest
+        request: AgentRequest,
+        route: AgentModelRoute,
+        context _: AgentModelInvocationContext
     ) async throws -> AgentResponse {
+        let selectedModel = route.profile.model
         let mapped = try OllamaRequestMapper.map(
             request,
+            model: selectedModel,
             configuration: configuration,
             stream: false
-        )
-        let selectedModel = OllamaRequestMapper.model(
-            request,
-            default: configuration.defaultModelIdentifier
         )
 
         var metadata = configuration.metadata
@@ -139,24 +135,20 @@ public struct OllamaModelResponseProvider:
     }
 
     public func stream(
-        request: AgentRequest
+        request: AgentRequest,
+        route: AgentModelRoute,
+        context _: AgentModelInvocationContext
     ) -> AsyncThrowingStream<AgentStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
+                    let selectedModel = route.profile.model
                     let mapped = try OllamaRequestMapper.map(
                         request,
+                        model: selectedModel,
                         configuration: configuration,
                         stream: true
                     )
-
-                    let selectedModel =
-                        OllamaRequestMapper.model(
-                            request,
-                            default:
-                                configuration
-                                    .defaultModelIdentifier
-                        )
 
                     var metadata = configuration.metadata
                     metadata["provider"] =

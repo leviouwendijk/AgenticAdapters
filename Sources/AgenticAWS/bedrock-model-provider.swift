@@ -13,7 +13,6 @@ public struct BedrockModelProvider:
         ]
     )
 
-    public let defaultModelIdentifier: String
     public let profiles: [AgentModelProfile]
     public let metadata: [String: String]
     public let diagnostics: BedrockDiagnostics
@@ -21,12 +20,10 @@ public struct BedrockModelProvider:
     private let runtime: (any BedrockModelRuntime)?
 
     public init(
-        defaultModelIdentifier: String,
         profiles: [AgentModelProfile],
         metadata: [String: String] = [:],
         diagnostics: BedrockDiagnostics = .disabled
     ) {
-        self.defaultModelIdentifier = defaultModelIdentifier
         self.profiles = profiles
         self.metadata = metadata
         self.diagnostics = diagnostics
@@ -35,12 +32,10 @@ public struct BedrockModelProvider:
 
     public init(
         runtime: any BedrockModelRuntime,
-        defaultModelIdentifier: String,
         profiles: [AgentModelProfile],
         metadata: [String: String] = [:],
         diagnostics: BedrockDiagnostics = .disabled
     ) {
-        self.defaultModelIdentifier = defaultModelIdentifier
         self.profiles = profiles
         self.metadata = metadata
         self.diagnostics = diagnostics
@@ -48,7 +43,6 @@ public struct BedrockModelProvider:
     }
 
     public var adapter: AgentModelAdapterFactory? {
-        let defaultModelIdentifier = defaultModelIdentifier
         let metadata = metadata
         let diagnostics = diagnostics
 
@@ -56,7 +50,6 @@ public struct BedrockModelProvider:
             return .init {
                 BedrockModelAdapter(
                     runtime: runtime,
-                    defaultModelIdentifier: defaultModelIdentifier,
                     metadata: metadata,
                     diagnostics: diagnostics
                 )
@@ -65,7 +58,6 @@ public struct BedrockModelProvider:
 
         return .init {
             try BedrockModelAdapter.resolve(
-                defaultModelIdentifier: defaultModelIdentifier,
                 metadata: metadata,
                 diagnostics: diagnostics
             )

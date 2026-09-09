@@ -5,6 +5,7 @@ import Primitives
 struct OllamaRequestMapper {
     static func map(
         _ request: AgentRequest,
+        model: String,
         configuration: OllamaModelConfiguration,
         stream: Bool
     ) throws -> OllamaChatRequest {
@@ -18,7 +19,7 @@ struct OllamaRequestMapper {
         }
 
         return .init(
-            model: model(request, default: configuration.defaultModelIdentifier),
+            model: model,
             messages: messages,
             tools: OllamaToolMapper.map(request.tools),
             stream: stream,
@@ -35,16 +36,6 @@ struct OllamaRequestMapper {
         )
     }
 
-    static func model(
-        _ request: AgentRequest,
-        default defaultModel: String
-    ) -> String {
-        let requested = request.model?.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let requested, !requested.isEmpty else {
-            return defaultModel
-        }
-        return requested
-    }
 }
 
 private struct OllamaMessageMapper {

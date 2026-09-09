@@ -2,23 +2,6 @@ import Agentic
 import AWSConnector
 
 enum BedrockRequestMapper {
-    static func model(
-        _ request: AgentRequest,
-        default defaultModel: String
-    ) -> String {
-        let requested = request.model?.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-
-        guard let requested,
-              !requested.isEmpty
-        else {
-            return defaultModel
-        }
-
-        return requested
-    }
-
     static func map(
         _ request: AgentRequest
     ) throws -> Bedrock.Converse.Request {

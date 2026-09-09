@@ -13,7 +13,6 @@ extension AgenticAdaptersFlowTesting {
             "aws_bedrock:claude_sonnet_4.6"
         let provider = BedrockModelProvider(
             runtime: BedrockModelProviderFixtureRuntime(),
-            defaultModelIdentifier: model,
             profiles: [
                 BedrockModelProfiles.advisor(
                     model,

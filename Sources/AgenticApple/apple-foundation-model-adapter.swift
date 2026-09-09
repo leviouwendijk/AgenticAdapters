@@ -21,18 +21,13 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
     public init() {}
 
     public func buffered(
-        request: AgentRequest
-    ) async throws -> AgentResponse {
-        try await buffered(
-            request: request,
-            context: .default
-        )
-    }
-
-    public func buffered(
         request: AgentRequest,
+        route: AgentModelRoute,
         context: AgentModelInvocationContext
     ) async throws -> AgentResponse {
+        try validateRoute(
+            route
+        )
         try validateRequest(
             request
         )
@@ -52,22 +47,15 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
             metadata: [
                 "provider": "apple",
                 "adapter": "foundation_models",
+                "model": route.profile.model,
                 "delivery": "buffered"
             ]
         )
     }
 
     public func stream(
-        request: AgentRequest
-    ) -> AsyncThrowingStream<AgentStreamEvent, Error> {
-        stream(
-            request: request,
-            context: .default
-        )
-    }
-
-    public func stream(
         request: AgentRequest,
+        route: AgentModelRoute,
         context: AgentModelInvocationContext
     ) -> AsyncThrowingStream<AgentStreamEvent, Error> {
         AsyncThrowingStream { continuation in
@@ -75,6 +63,7 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
                 do {
                     let bufferedResponse = try await buffered(
                         request: request,
+                        route: route,
                         context: context
                     )
                     let response = AgentResponse(
@@ -127,21 +116,27 @@ public struct AppleFoundationModelResponseProvider: AgentModelResponseProviding 
 }
 
 private extension AppleFoundationModelResponseProvider {
-    func validateRequest(
-        _ request: AgentRequest
+    func validateRoute(
+        _ route: AgentModelRoute
     ) throws {
-        if let model = request.model?.trimmingCharacters(
+        let model = route.profile.model.trimmingCharacters(
             in: .whitespacesAndNewlines
-        ),
-           !model.isEmpty,
-           model != "default",
-           model != "system",
-           model != "system.default" {
+        )
+
+        guard model.isEmpty
+                || model == "default"
+                || model == "system"
+                || model == "system.default"
+        else {
             throw AppleFoundationModelError.namedModelUnsupported(
                 model
             )
         }
+    }
 
+    func validateRequest(
+        _ request: AgentRequest
+    ) throws {
         let resources = request.messages.flatMap {
             $0.content.resources
         }
