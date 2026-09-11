@@ -1,7 +1,7 @@
 import TestFlows
 
 @main
-struct AgenticAdaptersFlowTesting {
+enum AgenticAdaptersFlowTestMain {
     static func main() async {
         await TestFlowCLI.run(
             suite: AgenticAdaptersFlowSuite.self
