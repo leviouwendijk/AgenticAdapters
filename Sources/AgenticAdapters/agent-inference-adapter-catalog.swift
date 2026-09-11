@@ -1,6 +1,9 @@
 import AgenticInference
 
-public struct AgentInferenceAdapterCatalog: Sendable {
+public struct AgentInferenceAdapterCatalog:
+    AgentInferenceAdapterResolving,
+    Sendable
+{
     private var adapters: [
         AgentInferenceAdapterIdentifier:
             any AgentInferenceAdapter
