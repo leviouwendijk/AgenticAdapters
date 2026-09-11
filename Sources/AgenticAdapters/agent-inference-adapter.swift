@@ -1,5 +1,5 @@
 import Agentic
-import AgenticPrograms
+import AgenticInference
 
 public protocol AgentInferenceAdapter: Sendable {
     var identifier: AgentInferenceAdapterIdentifier { get }

@@ -1,6 +1,6 @@
 import Agentic
 import AgenticAdapters
-import AgenticPrograms
+import AgenticInference
 import TestFlows
 
 enum NativeStructuredAdapterFlowTests {
@@ -30,7 +30,7 @@ enum NativeStructuredAdapterFlowTests {
     static func loweringDiagnostics() throws -> [TestFlowDiagnostic] {
         let adapter = NativeStructuredAdapter()
         let realization = AgentInferenceRealization(
-            strategy: "direct",
+            strategy: .direct,
             modelSelection: .executor,
             instructions: "Return the normalized value.",
             budget: .singleAttempt,

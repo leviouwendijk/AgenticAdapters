@@ -1,6 +1,6 @@
 import Agentic
 import AgenticAdapters
-import AgenticPrograms
+import AgenticInference
 import TestFlows
 
 enum AgentInferenceAdapterSubstrateFlowTests {

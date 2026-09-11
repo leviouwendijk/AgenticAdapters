@@ -1,4 +1,4 @@
-import AgenticPrograms
+import AgenticInference
 
 public struct AgentInferenceAdapterCatalog: Sendable {
     private var adapters: [

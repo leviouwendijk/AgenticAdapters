@@ -1,5 +1,5 @@
 import Agentic
-import AgenticPrograms
+import AgenticInference
 import Foundation
 
 public struct NativeStructuredAdapter:

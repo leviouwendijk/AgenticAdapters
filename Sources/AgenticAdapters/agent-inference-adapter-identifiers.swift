@@ -1,4 +1,4 @@
-import AgenticPrograms
+import AgenticInference
 
 public extension AgentInferenceAdapterIdentifier {
     static let native_structured = Self(
