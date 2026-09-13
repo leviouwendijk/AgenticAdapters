@@ -31,6 +31,10 @@ let package = Package(
             branch: "master"
         ),
         .package(
+            url: "https://github.com/leviouwendijk/AgenticRecovery.git",
+            branch: "master"
+        ),
+        .package(
             url: "https://github.com/leviouwendijk/TestFlows.git",
             branch: "master"
         ),
@@ -47,6 +51,10 @@ let package = Package(
                     name: "AgenticInference",
                     package: "AgenticInference"
                 ),
+                .product(
+                    name: "AgenticRecovery",
+                    package: "AgenticRecovery"
+                ),
             ]
         ),
         .executableTarget(
@@ -60,6 +68,10 @@ let package = Package(
                 .product(
                     name: "AgenticInference",
                     package: "AgenticInference"
+                ),
+                .product(
+                    name: "AgenticRecovery",
+                    package: "AgenticRecovery"
                 ),
                 .product(
                     name: "TestFlows",

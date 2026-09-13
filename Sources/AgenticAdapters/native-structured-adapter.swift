@@ -1,9 +1,12 @@
 import Agentic
 import AgenticInference
+import AgenticRecovery
 import Foundation
 
 public struct NativeStructuredAdapter:
     AgentInferenceAdapter,
+    AgentInferenceOutputRepairing,
+    AgentInferenceRecoveryClassifying,
     Sendable
 {
     public let identifier: AgentInferenceAdapterIdentifier
@@ -120,6 +123,72 @@ public struct NativeStructuredAdapter:
                 )
             )
         }
+    }
+
+    public func repair<Inference: AgentInference>(
+        _ inference: Inference.Type,
+        input: Inference.Input,
+        response: AgentResponse,
+        error: any Error,
+        realization: AgentInferenceRealization
+    ) throws -> AgentInferenceAdaptation {
+        var adaptation = try prepare(
+            inference,
+            input: input,
+            realization: realization
+        )
+
+        adaptation.request.messages.append(
+            response.message
+        )
+        adaptation.request.messages.append(
+            AgentMessage(
+                role: .user,
+                content: AgentContent(
+                    text: """
+                    The previous response could not be decoded as the required structured output.
+                    Return only a value that conforms to the required JSON schema.
+                    Decode error: \(error.localizedDescription)
+                    """
+                )
+            )
+        )
+        adaptation.request.metadata[
+            "inference.recovery"
+        ] = Recovery.Action.repair_output.rawValue
+
+        return adaptation
+    }
+
+    public func incident(
+        for error: any Error,
+        stage: Recovery.Stage,
+        inference: AgentInferenceIdentifier,
+        attemptIndex: Int,
+        invocationIndex: Int
+    ) -> Recovery.Incident? {
+        guard stage == .decoding,
+              error is NativeStructuredAdapterError
+        else {
+            return nil
+        }
+
+        return Recovery.Incident(
+            kind: .structured_output_invalid,
+            stage: .decoding,
+            effectState: Recovery.EffectState.none,
+            retrySafety: .safe,
+            scope: .init(
+                kind: .inference,
+                identifier: inference.rawValue
+            ),
+            message: error.localizedDescription,
+            metadata: [
+                "adapter": identifier.rawValue,
+                "attempt": String(attemptIndex),
+                "invocation": String(invocationIndex),
+            ]
+        )
     }
 }
 

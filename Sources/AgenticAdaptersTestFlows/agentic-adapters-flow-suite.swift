@@ -6,4 +6,5 @@ enum AgenticAdaptersFlowSuite: TestFlowRegistry {
     static let flows: [TestFlow] =
         AgentInferenceAdapterSubstrateFlowTests.all
             + NativeStructuredAdapterFlowTests.all
+            + nativeStructuredAdapterRecoveryFlows
 }

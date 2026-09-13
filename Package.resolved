@@ -1,5 +1,5 @@
 {
-  "originHash" : "56410b53270dc308e2501dfbddcd90c28bb02d3d2a83f07319e9cb047d266845",
+  "originHash" : "441de22cf988354655281e0f54045570e945e70d7c1ee9a61ccfbb8a9b25415d",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,16 +7,25 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "b4271a89701c5bf2b8f96d1c64497c9ec20c3864"
+        "revision" : "6586bbc2fb0b842c82cbf2b189dad6bca2ab0fdc"
       }
     },
     {
-      "identity" : "agenticprograms",
+      "identity" : "agenticinference",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/leviouwendijk/AgenticPrograms.git",
+      "location" : "https://github.com/leviouwendijk/AgenticInference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "603eef4ba966b4c74663a267f345472c337f860d"
+        "revision" : "34b7c1a1070aa60ab3f2d29b5ab82f5839f16e9a"
+      }
+    },
+    {
+      "identity" : "agenticrecovery",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/AgenticRecovery.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "ef6301b4026afccc1b2557bbdb300dde869a5a26"
       }
     },
     {
@@ -74,6 +83,15 @@
       }
     },
     {
+      "identity" : "macros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Macros.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "44885d7ebddc4e9ced6f7cba0deac0ca98da20f1"
+      }
+    },
+    {
       "identity" : "primitives",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/leviouwendijk/Primitives.git",
@@ -88,7 +106,7 @@
       "location" : "https://github.com/leviouwendijk/Schema.git",
       "state" : {
         "branch" : "master",
-        "revision" : "f23bd9c256f0d7b428c30db68bcd097a3a19c63a"
+        "revision" : "703253bef3f4ae18e03bb35e68ac6db0d1bc584d"
       }
     },
     {
@@ -101,12 +119,12 @@
       }
     },
     {
-      "identity" : "swim",
+      "identity" : "swift-syntax",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/leviouwendijk/Swim",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
       "state" : {
-        "branch" : "master",
-        "revision" : "0dc46fe1b1d7579e2a883ae45383061cf76d64ee"
+        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
+        "version" : "603.0.2"
       }
     },
     {
@@ -115,7 +133,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9c25740bc00db1019293675375bec5234776805a"
+        "revision" : "0b63af5e4049793948d3fe3dbdd47d2b5958250d"
       }
     },
     {
